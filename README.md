@@ -1,6 +1,6 @@
-# FormFit AI
+# Physio AI
 
-Real-time exercise tracking and form coaching from an ordinary webcam. FormFit AI estimates body pose with MediaPipe, counts repetitions from joint angles, scores tempo, flags posture errors as they happen, and stores progress in a local SQLite database.
+Real-time exercise tracking and form coaching from an ordinary webcam. PhysioFit AI estimates body pose with MediaPipe, counts repetitions from joint angles, scores tempo, flags posture errors as they happen, and stores progress in a local SQLite database.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)
 ![Flask](https://img.shields.io/badge/flask-3.x-000000)
