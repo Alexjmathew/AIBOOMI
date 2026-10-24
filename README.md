@@ -1,12 +1,14 @@
 # Physio AI
 
-Real-time exercise tracking and form coaching from an ordinary webcam. PhysioFit AI estimates body pose with MediaPipe, counts repetitions from joint angles, scores tempo, flags posture errors as they happen, and stores progress in a local SQLite database.
+Real-time exercise tracking and form coaching from an ordinary webcam. Physio AI estimates body pose with MediaPipe, counts repetitions from joint angles, scores tempo, flags posture errors while you move, and keeps your progress in either Firebase Firestore or a local SQLite file, chosen automatically at startup.
+
+Repository: https://github.com/Alexjmathew/AIBOOMI
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)
-![Flask](https://img.shields.io/badge/flask-3.x-000000)
+![Flask](https://img.shields.io/badge/flask-web%20app-000000)
 ![MediaPipe](https://img.shields.io/badge/pose-MediaPipe-0F9D58)
-![SQLite](https://img.shields.io/badge/storage-SQLite-003B57)
-![Status](https://img.shields.io/badge/status-prototype-orange)
+![Storage](https://img.shields.io/badge/storage-Firestore%20or%20SQLite-003B57)
+![Status](https://img.shields.io/badge/status-hackathon%20prototype-orange)
 
 ---
 
@@ -15,39 +17,43 @@ Real-time exercise tracking and form coaching from an ordinary webcam. PhysioFit
 1. [Overview](#overview)
 2. [Feature matrix](#feature-matrix)
 3. [System architecture](#system-architecture)
-4. [How a live workout works](#how-a-live-workout-works)
-5. [Rep detection and tempo model](#rep-detection-and-tempo-model)
-6. [Posture correction rules](#posture-correction-rules)
-7. [Calorie estimation model](#calorie-estimation-model)
-8. [Data model](#data-model)
-9. [HTTP API reference](#http-api-reference)
-10. [Project structure](#project-structure)
-11. [Installation](#installation)
-12. [Configuration](#configuration)
-13. [Security notes](#security-notes)
-14. [Known limitations](#known-limitations)
-15. [Roadmap](#roadmap)
-16. [Troubleshooting](#troubleshooting)
-17. [Contributing](#contributing)
-18. [License](#license)
+4. [Storage backends](#storage-backends)
+5. [How a live workout works](#how-a-live-workout-works)
+6. [Rep detection and tempo](#rep-detection-and-tempo)
+7. [Posture correction rules](#posture-correction-rules)
+8. [Calorie estimation](#calorie-estimation)
+9. [AI coach](#ai-coach)
+10. [Data model](#data-model)
+11. [Gamification](#gamification)
+12. [Route reference](#route-reference)
+13. [Project structure](#project-structure)
+14. [Installation](#installation)
+15. [Configuration](#configuration)
+16. [Diagnostics and testing](#diagnostics-and-testing)
+17. [Security notes](#security-notes)
+18. [Known limitations](#known-limitations)
+19. [Proposed roadmap](#proposed-roadmap)
+20. [Troubleshooting](#troubleshooting)
+21. [Contributing](#contributing)
+22. [License](#license)
 
 ---
 
 ## Overview
 
-Most home workouts have no one watching form, counting reps accurately, or giving feedback. FormFit AI closes that gap with three layers:
+Home workouts rarely have anyone watching your form, counting reps accurately or giving feedback. Physio AI adds three layers on top of a normal webcam:
 
 | Layer | Responsibility | Implementation |
 |---|---|---|
 | Perception | Locate 33 body landmarks per frame | MediaPipe Pose |
-| Reasoning | Convert landmarks to joint angles, reps, tempo and form verdicts | Transparent rule engine in Python |
-| Experience | Live overlay, spoken coaching, dashboards, reports | Flask, Web Speech API, Chart.js, ReportLab |
+| Reasoning | Joint angles, rep counting, tempo and form verdicts | Rule engine in `app.py` and `features.py` |
+| Experience | Live overlay, dashboards, AI coach chat, admin tools | Flask, Jinja templates, optional OpenAI integration |
 
 Design principles:
 
-- **Explainable.** Every correction comes from a readable rule with a documented threshold, not an opaque classifier.
-- **Private by default.** Only numeric results are persisted. Video frames are processed in memory and never written to disk.
-- **Honest numbers.** Calorie figures are labelled as estimates, and units are consistent (seconds per repetition is the stored unit).
+- **Explainable.** Every correction comes from a readable rule with a documented threshold.
+- **Private by default.** Only numeric results are stored. Camera frames are processed in memory and never written to disk.
+- **Runs anywhere.** With no cloud credentials the app falls back to a local SQLite file, so it works offline.
 
 ---
 
@@ -56,21 +62,22 @@ Design principles:
 | Capability | Description | Status |
 |---|---|---|
 | Live rep counting | Angle-based state machine for knee raises, squats, pushups | Implemented |
-| Tempo feedback | Too fast, too slow, good pace per repetition | Implemented |
-| AI posture correction | Torso lean, body line and knee alignment checks | Implemented |
-| Voice assistant | Spoken counts, instructions, warnings (Web Speech API) | Implemented |
-| Streaks and challenges | Current and longest streak, daily goal, weekly challenge, achievements | Implemented |
-| Badges | Consistent, Century, Speedster, Calorie Burner, Marathoner, 7-Day Streak | Implemented |
-| Body measurements | Weight, waist, body fat with trend chart | Implemented |
-| Calorie estimation | MET model adjusted for pace, clearly labelled as an estimate | Implemented |
-| Reminders | Schedule plus inactivity nudges via browser notifications | Partial (page must be open) |
-| PDF reports | Summary plus filtered session history | Implemented |
-| History filters | Exercise, date range, duration, reps, sort order | Implemented |
-| Leaderboard | Ranking by total repetitions | Implemented |
-| Admin console | Edit, add and delete sessions for any user | Implemented |
+| Tempo feedback | Too fast, too slow or good pace per repetition | Implemented |
+| Posture correction | Rules for squats, pushups, knee raises and lunges | Implemented |
+| Manual logging | Nine exercises including those without live tracking | Implemented |
+| Calorie estimate | MET x weight x time | Implemented |
+| Streaks and badges | Current and longest streak, six badges | Implemented |
+| Leaderboard | Ranked by total repetitions, shows streak and badge count | Implemented |
+| Body measurements | Weight, chest, waist, hips log | Implemented |
+| Reminders | Stores reminder time and message | Stored only, no delivery yet |
+| Progress page | Totals for reps, calories, time, streaks | Implemented |
+| Report download | Session history as a plain-text file | Implemented (text, not PDF) |
 | CSV export | Full session history | Implemented |
-| Responsive UI | Phone and tablet layouts for dashboards | Implemented for dashboards |
-| Multi-user live tracking | Concurrent camera sessions | Not yet (see limitations) |
+| AI coach chat | Local dataset engine, optional OpenAI key | Implemented |
+| Admin console | Add users, add, edit, delete sessions | Implemented |
+| Admin diagnostics | Runs the test suite and shows system status in the browser | Implemented |
+| Dual storage | Firestore when credentials exist, SQLite otherwise | Implemented |
+| Multi-user live tracking | Concurrent camera sessions | Not supported |
 
 ---
 
@@ -79,48 +86,87 @@ Design principles:
 ```mermaid
 flowchart LR
     subgraph Client["Browser"]
-        UI["Dashboard and training pages"]
-        VOICE["Voice assistant<br/>Web Speech API"]
-        CHART["Chart.js"]
-        NOTIF["Notification API"]
+        UI["Training, profile and admin pages"]
+        CHAT["AI coach chat panel"]
     end
 
     subgraph Server["Flask application"]
         ROUTES["Routes and auth<br/>app.py"]
-        STREAM["MJPEG stream generator"]
-        ENGINE["Rule engine<br/>angles, reps, tempo"]
-        POSTURE["Posture checks<br/>features.py"]
-        CAL["Calorie model"]
-        PDF["PDF builder<br/>ReportLab"]
-        DAL["Data access layer<br/>database.py"]
+        STREAM["MJPEG frame generator"]
+        ENGINE["Rep state machine<br/>angles and tempo"]
+        POSTURE["Posture rules<br/>features.py"]
+        FEAT["Progress, measurements,<br/>reminders, report<br/>features.py"]
+        COACH["AI coach<br/>chatbot.py"]
+        DIAG["Diagnostics<br/>test_app.py"]
+        DAL["Storage abstraction<br/>db_layer.py"]
     end
 
     CAM["Webcam"]
     MP["MediaPipe Pose<br/>33 landmarks"]
-    DB[("SQLite<br/>fitness.db")]
+    FS[("Firebase Firestore")]
+    SQ[("SQLite<br/>fitness.db")]
+    OAI["OpenAI API<br/>optional"]
+    DATA[("data folder<br/>local dataset")]
 
     CAM --> STREAM
     STREAM --> MP
     MP --> ENGINE
     ENGINE --> POSTURE
-    ENGINE --> CAL
-    ENGINE --> DAL
     STREAM -- "annotated frames" --> UI
     UI -- "poll /get_count" --> ROUTES
-    VOICE -- "reads feedback" --> UI
+    UI --> ROUTES
+    CHAT --> ROUTES
+    ROUTES --> FEAT
+    ROUTES --> COACH
+    ROUTES --> DIAG
     ROUTES --> DAL
-    ROUTES --> PDF
-    PDF --> DAL
-    DAL --> DB
-    UI --> CHART
-    UI --> NOTIF
+    ENGINE --> DAL
+    FEAT --> DAL
+    COACH --> OAI
+    COACH --> DATA
+    DAL --> FS
+    DAL --> SQ
 ```
 
-Key design decisions:
+---
 
-- **Short-lived SQLite connections.** Every data access function opens and closes its own connection, so the video thread and request threads never share a connection object. Write-ahead logging is enabled for concurrent readers.
-- **Rules before models.** Pose estimation is the only learned component. Counting and form judgment are deterministic and unit-testable.
-- **Stateless dashboards.** All dashboard widgets load from JSON endpoints, which keeps the UI replaceable.
+## Storage backends
+
+`db_layer.py` exposes one interface and picks the backend once at startup.
+
+```mermaid
+flowchart TD
+    A["App starts, get_db() called"] --> B{"firebase.json exists?"}
+    B -- "no" --> S["SQLiteDB<br/>offline mode"]
+    B -- "yes" --> C{"Valid JSON with project_id<br/>or service_account type?"}
+    C -- "no" --> S
+    C -- "yes" --> F["FirebaseDB<br/>Firestore and Firebase Auth"]
+    S --> R["Singleton returned to app.py"]
+    F --> R
+```
+
+Shared interface used by every route:
+
+| Method | Purpose |
+|---|---|
+| `get_user(email)` | Return the user dict or `None` |
+| `set_user(email, data)` | Create or overwrite |
+| `update_user(email, data)` | Partial merge update |
+| `user_exists(email)` | Boolean check |
+| `all_users()` | List all users, password fields removed |
+| `append_session(email, session)` | Add one workout |
+| `update_sessions(email, sessions)` | Replace the full session list |
+| `update_badges(email, badges)` | Replace badges |
+| `delete_field(email, field)` | Remove a top-level field |
+
+Behaviour differences:
+
+| Concern | Firebase mode | SQLite mode |
+|---|---|---|
+| Storage shape | One Firestore document per user | One row per user, whole user stored as JSON in a `data` column |
+| Auth accounts | Firebase Auth user is created alongside the document | No separate account, login uses the stored password hash only |
+| Password reset | Generates a reset link (you must email it) | Not available, the page says so |
+| Concurrency | Firestore handles it | Read, modify, write of the whole document, so simultaneous writes to one user can overwrite each other |
 
 ---
 
@@ -133,35 +179,33 @@ sequenceDiagram
     participant B as Browser
     participant F as Flask
     participant M as MediaPipe
-    participant D as SQLite
+    participant D as db_layer
 
-    U->>B: Select exercise and target
+    U->>B: Choose exercise and target reps
     B->>F: POST /select_exercise
     F-->>B: Redirect to /training
     B->>F: GET /video_feed
     loop Every camera frame
         F->>M: Process RGB frame
-        M-->>F: 33 landmarks with visibility
-        F->>F: Compute joint angle, update state machine
-        F->>F: Run posture checks, choose feedback
+        M-->>F: Landmarks with visibility
+        F->>F: Joint angle, rep state machine
+        F->>F: Posture rules override generic feedback
         F-->>B: Annotated JPEG chunk
     end
-    loop Every 600 ms
+    loop Polling
         B->>F: GET /get_count
-        F-->>B: count, feedback, elapsed, paused
-        B->>U: Speak count or correction
+        F-->>B: count, target, feedback, elapsed, paused
     end
     F->>F: Count reaches target
-    F->>D: Insert session, recompute badges
+    F->>D: append_session, then recompute badges
     F-->>B: exercise_complete true
-    B->>U: Announce completion
 ```
 
 ---
 
-## Rep detection and tempo model
+## Rep detection and tempo
 
-Repetitions are counted by a three-state machine driven by one joint angle per exercise. Hysteresis (the threshold band around the target angle) prevents jitter from producing phantom reps.
+A rep is counted when the tracked joint angle goes above the upper bound (position becomes up) and then drops below the lower bound. The band between the bounds prevents jitter from creating extra reps. The workout timer starts on the first counted rep, so setup time is not included.
 
 ```mermaid
 stateDiagram-v2
@@ -176,132 +220,152 @@ stateDiagram-v2
     Complete --> [*]
 ```
 
-Per-exercise parameters:
+Live exercises, as defined in `EXERCISES` in `app.py`:
 
-| Exercise | Joints (left side) | Target angle | Threshold | Upper bound | Lower bound | Optimal tempo (s per rep) |
+| Exercise | Joints (left side) | Target angle | Threshold | Upper bound | Lower bound | Good tempo (seconds per rep) |
 |---|---|---|---|---|---|---|
-| Knee raises | hip, knee, ankle | 80 | 25 | 105 | 55 | 1.0 to 2.0 |
+| Knee Raises | hip, knee, ankle | 80 | 25 | 105 | 55 | 1.0 to 2.0 |
 | Squats | hip, knee, ankle | 90 | 15 | 105 | 75 | 1.5 to 3.0 |
 | Pushups | shoulder, elbow, wrist | 90 | 15 | 105 | 75 | 1.5 to 3.0 |
 
-Angle computation uses the arccosine of the normalized dot product of the two limb vectors meeting at the middle joint, clipped to avoid domain errors.
+All three joints must have visibility above 0.5, otherwise the overlay asks the user to make every joint visible.
 
-**Units.** The stored speed value is always seconds per repetition. Repetitions per minute is derived for display only:
+Manual logging also accepts lunges, plank, sit-ups, jumping jacks, bicep curls and shoulder press.
 
-```
-reps_per_min = 60 / seconds_per_rep
-```
+**Units.** Speed is always stored as seconds per repetition (`average_speed`). Reps per minute is derived as `60 / seconds_per_rep` and stored as `reps_per_min`.
 
-A lower seconds-per-rep value means a faster tempo. Tempo guidance defaults to a 1.5 to 3.0 second window for the average across sessions.
+The recommendations page averages `average_speed` across sessions and maps it to advice:
+
+| Average seconds per rep | Message |
+|---|---|
+| Below 0.8 | Very fast, slow down for form and injury risk |
+| 0.8 to below 1.5 | Fast, slow slightly |
+| 1.5 to 3.0 | Excellent pace |
+| Above 3.0 to 5.0 | Moderate, pick up the tempo |
+| Above 5.0 | Slow, gradually increase speed |
 
 ---
 
 ## Posture correction rules
 
-Checks run each frame after the angle update. They only fire when every landmark they need has visibility above 0.5, so the system stays silent rather than guessing.
+Rules live in `features.py` and run every frame after the angle update. A rule stays silent unless the landmarks it needs have visibility above 0.4. Coordinates are normalized image units (x to the right, y downward).
 
-| Exercise | Rule | Trigger | Message |
-|---|---|---|---|
-| Squats | Torso lean from vertical | Greater than 55 degrees | Keep your chest up |
-| Squats | Knee to ankle horizontal offset (normalized image units) | Greater than 0.12 | Keep knees stacked over your ankles |
-| Pushups | Shoulder, hip, ankle angle | Less than 160 degrees | Keep your body in a straight line |
-| Knee raises | Torso lean from vertical | Greater than 20 degrees | Stand tall |
+| Exercise | Condition | Message |
+|---|---|---|
+| Squats | Left knee x is more than 0.08 beyond left ankle x | Keep your knees behind your toes |
+| Squats | Shoulder x and hip x differ by more than 0.12 | Keep your back straight, do not lean too far forward |
+| Pushups | Hip y is more than 0.05 above the shoulder to ankle midpoint | Lower your hips, keep your body in a straight line |
+| Pushups | Hip y is more than 0.05 below that midpoint | Raise your hips, avoid sagging |
+| Knee raises | Knee y is more than 0.05 below hip y | Lift your knee higher for full range of motion |
+| Lunges | Left knee x is more than 0.08 beyond left ankle x | Keep your front knee behind your toes |
 
-These thresholds are starting points. Camera height, distance and body proportions all shift them, so tune against recordings of your own setup before drawing conclusions.
+Lunges have a posture rule but are not yet available as a live-tracked exercise. These thresholds depend on camera angle and which side faces the camera, so tune them against your own setup.
 
 ---
 
-## Calorie estimation model
+## Calorie estimation
 
-Calories are an estimate, and the UI labels them as such. The model estimates energy above resting:
+Calories are an estimate. The model is deliberately simple:
 
 ```
-kcal = (MET - 1) x weight_kg x hours x intensity
-intensity = clamp(actual_reps_per_min / reference_reps_per_min, 0.8, 1.3)
+kcal = MET x weight_kg x (total_time_seconds / 3600)
 ```
 
-| Exercise | MET | Reference cadence (reps per min) |
-|---|---|---|
-| Knee raises | 3.5 | 30 |
-| Squats | 5.0 | 20 |
-| Pushups | 3.8 | 18 |
-| Lunges | 4.5 | 16 |
-| Plank | 3.0 | n/a |
-| Sit-ups | 3.5 | 20 |
-| Jumping jacks | 8.0 | 50 |
-| Bicep curls | 3.0 | 18 |
-| Shoulder press | 4.0 | 15 |
+| Exercise | MET |
+|---|---|
+| Knee raises | 3.5 |
+| Squats | 5.0 |
+| Pushups | 4.0 |
+| Lunges | 4.5 |
+| Plank | 3.0 |
+| Sit-ups | 4.0 |
+| Jumping jacks | 8.0 |
+| Bicep curls | 3.0 |
+| Shoulder press | 4.0 |
+| Any other exercise | 4.0 |
 
-When no duration is available, the model assumes 3 seconds per repetition. Results ignore age, sex, fitness level and rest periods, so treat them as rough guidance rather than medical data.
+Weight comes from the user profile and defaults to 70 kg when missing or invalid. The formula counts total energy rather than energy above resting, ignores rep count and pace, and does not account for age, sex or fitness level, so treat it as rough guidance.
+
+---
+
+## AI coach
+
+The profile page includes a chat panel backed by `chatbot.py`.
+
+```mermaid
+flowchart TD
+    Q["User message<br/>POST /api/chat"] --> K{"API key available?"}
+    K -- "key in request" --> O["OpenAI-backed answer"]
+    K -- "key saved in session" --> O
+    K -- "key in environment" --> O
+    K -- "none" --> L["Local dataset engine"]
+    O --> R["JSON reply to browser"]
+    L --> R
+```
+
+- Key priority is the request body, then the key saved in the session, then an environment variable.
+- `POST /api/set_openai_key` saves or clears a key for the current session. Sending an empty key reverts to the local engine.
+- The coach receives the user's profile and recent chat history as context.
 
 ---
 
 ## Data model
 
+Users are stored as one document. In SQLite mode the same structure is serialized as JSON in a single column.
+
 ```mermaid
 erDiagram
-    USERS ||--o{ SESSIONS : logs
-    USERS ||--o{ BADGES : earns
-    USERS ||--o{ MEASUREMENTS : records
-    USERS ||--o{ RESET_TOKENS : requests
+    USER ||--o{ SESSION : embeds
+    USER ||--o{ MEASUREMENT : embeds
+    USER ||--o{ REMINDER : embeds
 
-    USERS {
-        text email PK
-        text username
-        text password_hash
-        text age
-        text height
-        real weight
-        text blood_group
-        int is_admin
+    USER {
+        string email
+        string username
+        string password_hash
+        string age
+        string height
+        string weight
+        string blood_group
+        bool is_admin
         int daily_goal_reps
         int weekly_goal_reps
-        int rem_enabled
-        text rem_days
-        text rem_time
-        int rem_inactivity_days
-        text created_at
+        list badges
     }
-    SESSIONS {
-        int id PK
-        text email FK
-        text date
-        int reps
-        real total_time
-        real average_speed
-        real reps_per_min
-        real calories
-        text exercise
+    SESSION {
+        string date
+        int count
+        float total_time
+        float average_speed
+        float reps_per_min
+        float calories
+        string exercise
     }
-    BADGES {
-        text email PK
-        text name PK
-        text earned_at
+    MEASUREMENT {
+        string date
+        float weight
+        float chest
+        float waist
+        float hips
     }
-    MEASUREMENTS {
-        int id PK
-        text email FK
-        text date
-        real weight
-        real waist
-        real chest
-        real hips
-        real body_fat
-    }
-    RESET_TOKENS {
-        text token PK
-        text email FK
-        text expires_at
+    REMINDER {
+        string time
+        string message
+        bool active
     }
 ```
 
 Notes:
 
-- Foreign keys are enforced and cascade on delete and update, so removing a user removes their history.
-- `sessions(email, date)` and `measurements(email, date)` are indexed for filter and chart queries.
-- Badges are recomputed from the full session history after every save, so editing or deleting a session in the admin console cannot cause double counting.
+- The admin console addresses sessions by their position in the list, so deleting a session shifts the indexes of the ones after it.
+- Registration stores profile fields as strings straight from the form. Weight is converted to a number when calories are calculated.
+- Old accounts that still have a plaintext `password` field are upgraded to a hash on next login, and the plaintext field is removed.
 
-### Badge rules
+---
+
+## Gamification
+
+Badges are recomputed from the full session history after every save, so edits and deletions cannot double count.
 
 | Badge | Condition |
 |---|---|
@@ -312,184 +376,208 @@ Notes:
 | Marathoner | A single session with 50 or more reps |
 | 7-Day Streak | Longest streak of 7 or more consecutive days |
 
+The current streak counts consecutive days with at least one session, ending today or yesterday. The longest streak is the best run in the full history. Default goals are 20 reps per day and 150 reps per week, stored on the user.
+
 ---
 
-## HTTP API reference
+## Route reference
 
-All JSON endpoints require an authenticated session cookie and return `401` otherwise.
-
-### Pages
+### Account and pages
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET, POST | `/login`, `/register` | Authentication |
-| GET, POST | `/forgot_password`, `/reset_password/<token>` | Password recovery |
+| GET, POST | `/forgot_password` | Password reset (Firebase mode only) |
+| GET | `/logout` | Clears state and session |
 | GET | `/profile`, `/dashboard`, `/leaderboard`, `/recommendations` | User views |
 | GET, POST | `/edit_profile`, `/manual_log` | Profile and manual workout entry |
-| GET, POST | `/select_exercise` | Start a live workout |
-| GET | `/training`, `/video_feed` | Live session and MJPEG stream |
 | GET | `/export_sessions` | CSV download |
-| GET | `/export_pdf` | PDF report, accepts the same filters as `/api/sessions` |
+| GET | `/progress` | Totals and streaks |
+| GET, POST | `/measurements` | Body measurement log |
+| GET, POST | `/reminders` | Reminder entries |
+| GET | `/pdf_report` | Session history as a plain-text download |
 
-### Live session control
+### Live workout
 
-| Method | Path | Body | Response |
-|---|---|---|---|
-| GET | `/get_count` | none | `count`, `target`, `feedback`, `total_time`, `exercise_complete`, `is_paused` |
-| POST | `/set_target` | `{"target": 12}` | `success`, `target` |
-| POST | `/pause_resume` | none | `success`, `is_paused` |
-| POST | `/save_session` | none | `success` (idempotent per workout) |
-
-### Analytics and tracking
-
-| Method | Path | Notes |
+| Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/progress` | Streaks, daily and weekly progress, achievements |
-| POST | `/api/goals` | `daily_goal_reps` (1 to 2000), `weekly_goal_reps` (1 to 10000) |
-| GET, POST | `/api/measurements` | POST: `weight` (20 to 400 kg), optional `date`, `waist`, `chest`, `hips`, `body_fat` |
-| GET, POST | `/api/reminders` | `enabled`, `days` (0 is Monday), `time` (HH:MM), `inactivity_days` |
-| GET | `/api/inactivity` | `days_since_last`, `nudge` |
-| GET | `/api/sessions` | Filters below |
+| GET, POST | `/select_exercise` | Choose exercise and target |
+| GET | `/training` | Live session page |
+| GET | `/video_feed` | MJPEG stream with overlays |
+| GET | `/get_count` | JSON: `count`, `target`, `feedback`, `total_time`, `exercise_complete`, `is_paused` |
+| POST | `/set_target` | JSON body `{"target": 12}`, resets the session |
+| POST | `/pause_resume` | Toggle pause |
+| POST | `/save_session` | Save the workout, safe to call twice |
 
-Session filters for `/api/sessions` and `/export_pdf`:
-
-| Parameter | Type | Meaning |
-|---|---|---|
-| `exercise` | string | Case-insensitive match, underscores treated as spaces |
-| `from`, `to` | date | Inclusive range, `YYYY-MM-DD` |
-| `min_reps` | integer | Minimum repetitions |
-| `min_time`, `max_time` | number | Duration bounds in seconds |
-| `sort` | string | `date_desc`, `date_asc`, `reps_desc`, `time_desc`, `calories_desc` |
-
-Example:
-
-```bash
-curl -b cookies.txt \
-  "http://127.0.0.1:5000/api/sessions?exercise=squats&from=2026-10-01&min_reps=10&sort=reps_desc"
-```
-
-### Administration
+### AI coach
 
 | Method | Path | Body |
 |---|---|---|
-| GET | `/admin` | none |
-| POST | `/admin/add_session` | `email`, `date`, `count`, `total_time`, `exercise` |
-| POST | `/admin/update_session` | same as above plus `session_index` |
-| POST | `/admin/delete_session` | `email`, `session_index` |
+| POST | `/api/chat` | `message`, optional `history`, optional `api_key` |
+| POST | `/api/set_openai_key` | `api_key` (empty clears) |
 
-Admin routes require `is_admin = 1` on the user record.
+### Administration
+
+All admin routes require `is_admin` on the signed-in user.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/admin` | User and session overview |
+| POST | `/admin/add_user` | `email`, `username`, `password`, optional profile fields and `is_admin` |
+| POST | `/admin/add_session` | `email`, `date`, `count`, `total_time`, `exercise` |
+| POST | `/admin/update_session` | Same plus `session_index` |
+| POST | `/admin/delete_session` | `email`, `session_index` |
+| GET | `/admin/tests` | Run diagnostics and render results |
+| POST | `/admin/run_tests_api` | Run diagnostics and return JSON |
+
+`/debug_session` returns the session contents but only while Flask debug mode is on.
 
 ---
 
 ## Project structure
 
 ```text
-formfit-ai/
-|-- app.py                  Flask routes, auth, live stream, session lifecycle
-|-- features.py             Posture rules, calorie model, streaks, goals,
-|                           measurements, reminders, PDF, history filters
-|-- database.py             SQLite schema and data access layer
-|-- requirements.txt
-|-- fitness.db              Created on first run (git-ignored)
-|-- templates/
-|   |-- login.html  register.html  forgot_password.html  reset_password.html
-|   |-- profile.html  edit_profile.html  manual_log.html
-|   |-- select_exercise.html  training.html
-|   |-- leaderboard.html  recommendation.html  admin.html
-|   `-- dashboard.html      Progress, goals, measurements, reminders, history
-`-- static/
-    |-- voice.js            Spoken counts and corrections
-    `-- *.png               Exercise images
+AIBOOMI/
+|-- app.py            Routes, auth, live stream, rep state machine, admin
+|-- db_layer.py       Firestore or SQLite storage abstraction
+|-- features.py       Posture rules, calories, streaks, speed advice,
+|                     progress, measurements, reminders, report routes
+|-- chatbot.py        AI coach (referenced by app.py)
+|-- test_app.py       Test suite and system diagnostics
+|-- data/             Data used by the project (local coach dataset)
+|-- static/           Exercise images and assets
+|-- templates/        Pages referenced by routes:
+|                     login, register, forgot_password, profile, edit_profile,
+|                     dashboard, manual_log, select_exercise, training,
+|                     leaderboard, recommendation, progress, measurements,
+|                     reminders, admin, admin_tests
+|-- .env              Local secrets (never commit)
+|-- firebase.json     Optional Firebase service account (never commit)
+|-- fitness.db        Created automatically in SQLite mode
 ```
 
 ---
 
 ## Installation
 
-Requirements: Python 3.10 or newer, a working webcam, and a modern browser (Chrome, Edge or Safari recommended for speech synthesis).
+Requirements: Python 3.10 or newer, a webcam, and a modern browser.
 
 ```bash
-git clone <your-repository-url> formfit-ai
-cd formfit-ai
+git clone https://github.com/Alexjmathew/AIBOOMI.git
+cd AIBOOMI
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install flask opencv-python mediapipe numpy pandas python-dotenv werkzeug
+```
 
-export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+Install optional extras only if you use them:
+
+```bash
+pip install firebase-admin         # only for Firebase mode
+pip install openai                 # only if chatbot.py uses the OpenAI SDK
+```
+
+Create a `.env` file in the project root:
+
+```bash
+SECRET_KEY=replace-with-a-long-random-string
+```
+
+Run it:
+
+```bash
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`, register an account, then promote it to administrator if needed:
+Open http://127.0.0.1:5000 and register an account. With no `firebase.json` present, the console prints that SQLite offline mode is active and creates `fitness.db`.
 
-```bash
-flask --app app make-admin you@example.com
+### Creating the first administrator
+
+New accounts are not admins. Promote one from a Python shell in the project folder:
+
+```python
+from db_layer import get_db
+get_db().update_user("you@example.com", {"is_admin": True})
 ```
 
-Add the voice assistant to `templates/training.html` just before the closing body tag:
-
-```html
-<button id="voiceToggle" type="button">Voice: on</button>
-<script src="{{ url_for('static', filename='voice.js') }}"></script>
-```
+Log out and back in for the change to take effect. After that, admins can create more users from the admin console.
 
 ---
 
 ## Configuration
 
-| Variable | Default | Purpose |
+| Setting | Where | Purpose |
 |---|---|---|
-| `SECRET_KEY` | development placeholder | Signs session cookies. Always set in production. |
-| `DATABASE_PATH` | `./fitness.db` | Location of the SQLite file |
-| `ADMIN_EMAIL` | unset | Account that receives administrator rights on registration |
+| `SECRET_KEY` | `.env` | Signs session cookies. Falls back to an insecure development value if unset. |
+| OpenAI key | Environment variable, session or request | Enables OpenAI answers in the coach. Check `chatbot.py` for the exact variable name. |
+| `firebase.json` | Project root | Presence of a valid service account switches storage to Firebase |
+| `fitness.db` | Project root | SQLite file used when Firebase is not configured |
 
-Tunable constants live in code: exercise definitions and tempo windows in `app.py`, posture thresholds and calorie tables in `features.py`.
+Exercise definitions and tempo windows are in `EXERCISES` in `app.py`. Posture thresholds, MET values and speed advice ranges are in `features.py`.
+
+---
+
+## Diagnostics and testing
+
+Admins can open `/admin/tests` to run the suite in `test_app.py` from the browser. The page shows total, passed and failed counts, pass rate, total duration and system diagnostics. `/admin/run_tests_api` returns the same data as JSON for scripts.
+
+Guidelines for new tests:
+
+- Feed synthetic landmarks to each posture rule, including a case with low visibility that must return nothing.
+- Test streak logic around month boundaries and with a gap of exactly one day.
+- Run the suite once in each storage mode.
 
 ---
 
 ## Security notes
 
-- Passwords are stored only as salted hashes (Werkzeug). Plaintext passwords are never persisted.
-- Administrator access is a database flag, not a username comparison.
-- Password reset tokens are random, expire after one hour, and are single use. Without an email provider configured, the reset link is written to the server log, so wire up SMTP before exposing the app.
-- Session cookies should be served over HTTPS in production, with `SESSION_COOKIE_SECURE` and `SESSION_COOKIE_HTTPONLY` enabled.
-- Camera frames are processed in memory only. Nothing about the image is stored.
-- `/debug_session` is available only when Flask debug mode is on. Never run with `debug=True` on a public host.
-- Add rate limiting (for example Flask-Limiter) to login and reset endpoints before public deployment.
+- Passwords are stored only as salted hashes. Legacy plaintext values are upgraded on login.
+- Administrator access is a flag on the user record, not a username check.
+- Keep `.env` and `firebase.json` out of version control. Add both to `.gitignore`, and rotate any key that was ever committed.
+- Set a real `SECRET_KEY`. The built-in fallback is public.
+- Flask session cookies are signed, not encrypted. An OpenAI key saved with `/api/set_openai_key` lives in that cookie, so use HTTPS in any shared deployment or move keys to server-side sessions.
+- Forms and JSON endpoints do not use CSRF tokens. Add Flask-WTF or similar before public deployment.
+- Add rate limiting to `/login` and `/register`.
+- Never run with `debug=True` on a public host.
+- Camera frames are processed in memory only.
 
 ---
 
 ## Known limitations
 
-| Limitation | Impact | Planned fix |
+| Limitation | Impact | Possible fix |
 |---|---|---|
 | Server reads the machine webcam | Phones show the server camera, not their own | Run MediaPipe in the browser |
-| Live workout state is global | One live user at a time | Per-session state, ideally client-side |
-| Reminders need the page open | No background alerts | Web push or Firebase Cloud Messaging |
-| Left-side landmarks only | Wrong side facing the camera can reduce accuracy | Automatic side selection by visibility |
-| Fixed thresholds | Camera angle and body proportions affect results | Per-user calibration |
-| Calories are estimates | Not suitable for medical decisions | Optional heart rate integration |
+| Live workout state is global | One live user at a time | Per-session state |
+| Auto-save runs inside the video generator and reads the Flask session | It can fail outside a request context, in which case use the Save button, which calls `/save_session` | Capture the email in `/video_feed` and pass it in, or use `stream_with_context` |
+| SQLite stores each user as one JSON blob | No SQL queries on sessions, and concurrent writes can overwrite each other | Move to relational tables |
+| Reminders are stored but never delivered | No notifications | Browser notifications or push |
+| Report download is plain text | Not a formatted PDF | Generate a real PDF |
+| Left-side landmarks only | Lower accuracy if the right side faces the camera | Pick the more visible side |
+| Fixed thresholds | Camera angle and body proportions change results | Per-user calibration |
+| Calories are rough | Not medical data | Pace and heart rate inputs |
 
 ---
 
-## Roadmap
+## Proposed roadmap
 
 ```mermaid
 gantt
-    title FormFit AI roadmap
+    title Physio AI proposed roadmap
     dateFormat YYYY-MM-DD
     axisFormat %b %Y
 
     section Now
     Browser-side pose detection    :a1, 2026-11-01, 45d
     Per-user session state         :a2, 2026-11-01, 30d
-    SQLite hardening and tests     :a3, 2026-11-15, 30d
+    Fix auto-save and add tests    :a3, 2026-11-01, 21d
 
     section Next
-    More exercises, tuned rules    :b1, after a1, 45d
-    Push reminders                 :b2, after a2, 30d
-    Pilot with one gym             :b3, after a1, 60d
+    More live exercises            :b1, after a1, 45d
+    Reminder delivery              :b2, after a2, 30d
+    Pilot with one gym or clinic   :b3, after a1, 60d
 
     section Later
     Coach and clinic dashboards    :c1, after b1, 60d
@@ -503,32 +591,26 @@ gantt
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Black video panel | Camera in use by another app, or wrong index | Close other apps, or change `cv2.VideoCapture(0)` to another index |
-| "Ensure all joints are visible" never clears | Subject too close, left side hidden | Step back so the whole left side is in frame, face the camera sideways |
-| Reps double counted | Threshold band too narrow for your movement | Increase the exercise `threshold` value |
-| No voice | Browser blocks speech until a user gesture | Click the voice toggle once, or any page element |
-| `database is locked` | Long external process holding the file | Close other tools opened on `fitness.db`, keep WAL mode enabled |
-| PDF route returns 500 | ReportLab missing | `pip install reportlab` |
-| Notifications never appear | Permission not granted | Allow notifications for the site and keep the dashboard open |
+| Black video panel | Camera busy or wrong device index | Close other apps, or change `cv2.VideoCapture(0)` |
+| "Ensure all joints are visible" never clears | Left side of the body is hidden | Stand sideways with the whole left side in frame |
+| Reps double counted or missed | Threshold band does not fit your range of motion | Adjust `threshold` for that exercise |
+| Workout finished but not in history | Auto-save failed | Press save, or check the server log for a pose processing error |
+| "Password reset is not available in offline mode" | SQLite mode has no email support | Use Firebase mode with an email sender, or reset through an admin |
+| Cannot open `/admin` | Account is not an admin | Promote it as shown in Installation |
+| Dashboard widgets empty | Template calls endpoints that the backend does not define | Compare the fetch URLs in `dashboard.html` with the routes above |
+| `database is locked` | Another process holds `fitness.db` | Close other tools that opened it |
 
 ---
 
 ## Contributing
 
 1. Fork the repository and create a feature branch.
-2. Keep rules deterministic and add a test that feeds synthetic landmarks to any new posture check.
-3. Keep stored units consistent: seconds per repetition, kilograms, centimetres.
-4. Open a pull request describing the change and how it was validated.
-
-Suggested checks before submitting:
-
-```bash
-python -m py_compile app.py features.py database.py
-python -m pytest            # once tests are added
-```
+2. Keep rules deterministic and add a test for each new posture rule.
+3. Keep stored units consistent: seconds per repetition, kilograms.
+4. Run the diagnostics page before opening a pull request, in both storage modes if you touched `db_layer.py`.
 
 ---
 
 ## License
 
-Choose and add a license before publishing, for example MIT or Apache-2.0, and place it in a `LICENSE` file at the repository root.
+No license file was found in the repository. Add one, for example MIT or Apache-2.0, as `LICENSE` at the project root before sharing the code publicly.
