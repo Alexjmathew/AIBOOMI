@@ -1,0 +1,201 @@
+{
+  "exercises": {
+    "squats": {
+      "name": "Squats",
+      "category": "Lower Body",
+      "target_muscles": ["Quadriceps", "Gluteus Maximus", "Hamstrings", "Core"],
+      "met": 5.0,
+      "optimal_speed_range": "1.5 - 3.0 seconds per rep (20 - 40 reps/min)",
+      "target_angle": 90,
+      "joints": ["HIP", "KNEE", "ANKLE"],
+      "form_cues": [
+        "Keep feet shoulder-width apart, toes pointing slightly outward.",
+        "Descend until thighs are at least parallel to the floor (knee angle ~90°).",
+        "Keep your chest upright and avoid letting your knees collapse inward (valgus).",
+        "Drive through your midfoot and heels on the way up."
+      ],
+      "common_mistakes": [
+        "Knees caving inwards",
+        "Heels lifting off the ground",
+        "Rounding the lower back (butt wink)",
+        "Rushing reps without achieving full depth"
+      ]
+    },
+    "pushups": {
+      "name": "Pushups",
+      "category": "Upper Body & Chest",
+      "target_muscles": ["Pectoralis Major", "Triceps Brachii", "Anterior Deltoids", "Core"],
+      "met": 4.0,
+      "optimal_speed_range": "1.5 - 3.0 seconds per rep (20 - 40 reps/min)",
+      "target_angle": 90,
+      "joints": ["SHOULDER", "ELBOW", "WRIST"],
+      "form_cues": [
+        "Maintain a straight plank line from head to heels.",
+        "Elbows should flare at approximately 45 degrees, not 90 degrees.",
+        "Lower chest to within 2 inches of the floor before pressing up to full elbow lockout.",
+        "Engage glutes and abs to avoid sagging hips."
+      ],
+      "common_mistakes": [
+        "Sagging lower back or elevated hips",
+        "Flaring elbows wide (causes shoulder impingement)",
+        "Partial reps not touching full depth",
+        "Craning neck forward"
+      ]
+    },
+    "knee_raises": {
+      "name": "Knee Raises",
+      "category": "Core & Cardio",
+      "target_muscles": ["Hip Flexors", "Rectus Abdominis", "Quadriceps"],
+      "met": 3.5,
+      "optimal_speed_range": "1.0 - 2.0 seconds per rep (30 - 60 reps/min)",
+      "target_angle": 80,
+      "joints": ["HIP", "KNEE", "ANKLE"],
+      "form_cues": [
+        "Drive knee upwards until thigh is parallel or slightly above hip level (angle < 80°).",
+        "Land lightly on the ball of the foot with soft knees.",
+        "Keep your torso upright; avoid leaning backward.",
+        "Maintain a brisk, steady cadence."
+      ],
+      "common_mistakes": [
+        "Not raising knees high enough (shallow reps)",
+        "Stomping heavily on landing",
+        "Excessive backward spine curvature"
+      ]
+    },
+    "lunges": {
+      "name": "Lunges",
+      "category": "Lower Body & Balance",
+      "target_muscles": ["Quadriceps", "Glutes", "Hamstrings", "Calves"],
+      "met": 4.5,
+      "optimal_speed_range": "2.0 - 3.5 seconds per rep",
+      "form_cues": [
+        "Take a generous stride forward.",
+        "Lower until both front and back knees reach 90-degree angles.",
+        "Front knee should not shear past toes.",
+        "Keep torso upright and core brace active."
+      ],
+      "common_mistakes": ["Short steps jamming front knee", "Torso leaning forward", "Back knee banging on the floor"]
+    },
+    "plank": {
+      "name": "Plank",
+      "category": "Core Stability",
+      "target_muscles": ["Transverse Abdominis", "Rectus Abdominis", "Obliques", "Shoulders"],
+      "met": 3.0,
+      "form_cues": [
+        "Forearms parallel on floor, elbows aligned directly beneath shoulders.",
+        "Form a rigid straight line from shoulders to heels.",
+        "Squeeze glutes and pull belly button towards spine.",
+        "Breathe steadily without letting hips hike or dip."
+      ],
+      "common_mistakes": ["Hips sagging low (compresses spine)", "Piking hips into the air", "Holding breath"]
+    },
+    "jumping_jacks": {
+      "name": "Jumping Jacks",
+      "category": "Cardio & Full Body",
+      "target_muscles": ["Calves", "Deltoids", "Core", "Cardiovascular System"],
+      "met": 8.0,
+      "optimal_speed_range": "0.8 - 1.5 seconds per rep (40 - 75 reps/min)",
+      "form_cues": [
+        "Start standing upright with feet together and arms at sides.",
+        "Jump feet outward while sweeping arms above head.",
+        "Land softly on balls of feet with knees slightly unlocked.",
+        "Immediately reverse motion in rhythm."
+      ],
+      "common_mistakes": ["Stiff legged landings", "Incomplete arm range of motion"]
+    },
+    "bicep_curls": {
+      "name": "Bicep Curls",
+      "category": "Upper Body & Arms",
+      "target_muscles": ["Biceps Brachii", "Brachialis", "Forearms"],
+      "met": 3.0,
+      "optimal_speed_range": "2.0 - 3.0 seconds per rep",
+      "form_cues": [
+        "Pin elbows firmly beside your ribs throughout the entire movement.",
+        "Curl weight upwards smoothly without swinging torso.",
+        "Pause and squeeze at peak contraction for 1 second.",
+        "Control the lowering eccentric phase for 2 seconds."
+      ],
+      "common_mistakes": ["Using momentum or swinging lower back", "Elbows drifting forward", "Dropping weight without eccentric control"]
+    },
+    "shoulder_press": {
+      "name": "Shoulder Press",
+      "category": "Upper Body & Deltoids",
+      "target_muscles": ["Anterior Deltoids", "Lateral Deltoids", "Triceps", "Trapezius"],
+      "met": 4.0,
+      "optimal_speed_range": "2.0 - 3.5 seconds per rep",
+      "form_cues": [
+        "Press weight straight overhead until arms are extended but not hyper-extended.",
+        "Keep core tight to prevent overarching the lumbar spine.",
+        "Lower under control to chin/collarbone level."
+      ],
+      "common_mistakes": ["Arching the lower back excessively", "Pressing weight forward instead of overhead"]
+    },
+    "sit_ups": {
+      "name": "Sit Ups",
+      "category": "Core & Abs",
+      "target_muscles": ["Rectus Abdominis", "Hip Flexors"],
+      "met": 4.0,
+      "optimal_speed_range": "1.5 - 2.5 seconds per rep",
+      "form_cues": [
+        "Bend knees at 90 degrees with feet flat on the floor.",
+        "Cross arms over chest or keep hands by ears without pulling on the neck.",
+        "Engage abs to curl upper torso off the floor smoothly.",
+        "Lower back down with control."
+      ],
+      "common_mistakes": ["Yanking neck with hands", "Using hip momentum instead of abdominal contraction"]
+    }
+  },
+  "training_programs": {
+    "beginner_fat_loss": {
+      "name": "Beginner Fat Burn & Tone",
+      "weekly_frequency": "3-4 days/week",
+      "routine": [
+        {"exercise": "jumping_jacks", "target": "3 sets of 30 reps", "rest": "45s"},
+        {"exercise": "squats", "target": "3 sets of 15 reps", "rest": "60s"},
+        {"exercise": "knee_raises", "target": "3 sets of 20 reps", "rest": "45s"},
+        {"exercise": "plank", "target": "3 sets of 30-45 seconds", "rest": "60s"}
+      ]
+    },
+    "strength_hypertrophy": {
+      "name": "Muscle Building & Strength",
+      "weekly_frequency": "4 days/week",
+      "routine": [
+        {"exercise": "pushups", "target": "4 sets of 12-15 reps", "rest": "90s"},
+        {"exercise": "squats", "target": "4 sets of 20 reps", "rest": "90s"},
+        {"exercise": "lunges", "target": "3 sets of 12 reps per leg", "rest": "60s"},
+        {"exercise": "shoulder_press", "target": "3 sets of 12 reps", "rest": "75s"},
+        {"exercise": "bicep_curls", "target": "3 sets of 15 reps", "rest": "60s"}
+      ]
+    },
+    "core_endurance": {
+      "name": "Core & Stamina Sculptor",
+      "weekly_frequency": "3 days/week",
+      "routine": [
+        {"exercise": "plank", "target": "3 sets of 60 seconds", "rest": "45s"},
+        {"exercise": "knee_raises", "target": "4 sets of 25 reps", "rest": "30s"},
+        {"exercise": "sit_ups", "target": "3 sets of 20 reps", "rest": "45s"},
+        {"exercise": "jumping_jacks", "target": "3 sets of 40 reps", "rest": "45s"}
+      ]
+    }
+  },
+  "nutrition_guidelines": {
+    "fat_loss": {
+      "calorie_target": "Daily caloric deficit of 300 - 500 kcal below TDEE.",
+      "protein_intake": "1.6 to 2.2 grams per kg of body weight.",
+      "hydration": "35 to 40 ml of water per kg of body weight daily.",
+      "advice": "Prioritize high-volume fibrous veggies, lean poultry, fish, eggs, and complex slow-digesting carbs."
+    },
+    "muscle_gain": {
+      "calorie_target": "Slight surplus of 250 - 400 kcal above maintenance TDEE.",
+      "protein_intake": "1.8 to 2.4 grams per kg of body weight.",
+      "hydration": "40 ml of water per kg of body weight daily.",
+      "advice": "Ensure adequate carbohydrate intake around training windows to fuel workouts and glycogen replenishment."
+    },
+    "maintenance": {
+      "calorie_target": "Equal to maintenance TDEE.",
+      "protein_intake": "1.2 to 1.6 grams per kg of body weight.",
+      "hydration": "30 to 35 ml per kg.",
+      "advice": "Focus on whole foods, healthy fats (avocados, nuts, olive oil), and micronutrient variety."
+    }
+  }
+}

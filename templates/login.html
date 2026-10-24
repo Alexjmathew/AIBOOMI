@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --blue: #1769ff;
+            --navy: #102448;
+            --muted: #8290a8
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--navy);
+            background: #edf4ff
+        }
+
+        .scene {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 35px 18px 65px;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 10% 10%, #d3e5ff, transparent 42%), radial-gradient(ellipse at 90% 90%, #c2dcff, transparent 40%), linear-gradient(135deg, #f8fbff, #e9f2ff, #fff)
+        }
+
+        .ambient {
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(8px);
+            animation: float 9s ease-in-out infinite
+        }
+
+        .ambient.one {
+            width: 340px;
+            height: 340px;
+            top: -110px;
+            left: -100px;
+            background: #78adff30
+        }
+
+        .ambient.two {
+            width: 400px;
+            height: 400px;
+            bottom: -140px;
+            right: -120px;
+            background: #1769ff24;
+            animation-delay: -4s
+        }
+
+        .orb {
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+            background: linear-gradient(135deg, #fff, #b9d5ff);
+            box-shadow: inset -9px -10px 20px #3676d51c, 14px 25px 45px #2b64b91c;
+            animation: float 7s ease-in-out infinite
+        }
+
+        .orb.one {
+            width: 90px;
+            height: 90px;
+            top: 12%;
+            left: 12%
+        }
+
+        .orb.two {
+            width: 62px;
+            height: 62px;
+            right: 12%;
+            bottom: 14%;
+            animation-delay: -3s
+        }
+
+        .orb.three {
+            width: 27px;
+            height: 27px;
+            top: 24%;
+            right: 22%;
+            animation-delay: -5s
+        }
+
+        .login-card {
+            width: min(100%, 470px);
+            padding: 32px 40px 27px;
+            position: relative;
+            border: 1px solid #fff;
+            border-radius: 27px;
+            background: #ffffffdf;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 2px 3px #194b8b08, 0 15px 35px #25599b10, 0 40px 85px #25599b18, inset 0 1px 1px #fff;
+            transform-style: preserve-3d;
+            transition: transform .18s ease, box-shadow .3s ease;
+            animation: appear .8s cubic-bezier(.2, .8, .2, 1) both
+        }
+
+        .login-card:before {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            top: -120px;
+            right: -80px;
+            border-radius: 50%;
+            background: #4b8cff14;
+            pointer-events: none
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 29px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 39px;
+            height: 39px;
+            color: white;
+            font-size: 27px;
+            font-weight: 500;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #65a8ff, #0750e5);
+            box-shadow: 0 5px 0 #1647b7, 0 9px 20px #1769ff40, inset 0 1px 1px #ffffff90
+        }
+
+        .brand-name span {
+            color: var(--blue)
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #6680a5;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.5px
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: #328dff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px #328dff18;
+            animation: pulse 2s infinite
+        }
+
+        h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(32px, 5vw, 40px);
+            line-height: 1.14;
+            letter-spacing: -1.7px;
+            font-weight: 800
+        }
+
+        h1 span {
+            color: var(--blue)
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            margin-bottom: 25px;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 11px 13px;
+            margin-bottom: 18px;
+            border-radius: 10px;
+            background: #fff1f3;
+            border: 1px solid #ffd4dc;
+            color: #c22d47;
+            font-size: 12px
+        }
+
+        .error-message i {
+            font-size: 15px
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+            position: relative
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #334a6b;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .input-box {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 13px;
+            border: 1px solid #e4ebf5;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #fff, #f9fbff);
+            box-shadow: inset 0 1px 2px #244b8206;
+            transition: .25s ease
+        }
+
+        .input-box:focus-within {
+            border-color: #78aaff;
+            background: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 4px #2875ff12, 0 6px 16px #2875ff0d
+        }
+
+        .input-icon {
+            flex: 0 0 17px;
+            width: 17px;
+            text-align: center;
+            color: #5b91ef;
+            font-size: 15px
+        }
+
+        .form-control {
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: #1d3455;
+            font-family: inherit;
+            font-size: 12px
+        }
+
+        .form-control::placeholder {
+            color: #a6b2c4
+        }
+
+        .password-toggle {
+            flex: 0 0 27px;
+            width: 27px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #8294ae;
+            cursor: pointer
+        }
+
+        .password-toggle:hover {
+            background: #eff5ff;
+            color: var(--blue)
+        }
+
+        .btn {
+            width: 100%;
+            height: 49px;
+            margin-top: 5px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 0;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(110deg, #347fff, #0751e9 75%, #0647cf);
+            box-shadow: 0 5px 0 #1045bd, 0 10px 20px #145ceb38, inset 0 1px 1px #ffffff60;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .2s ease
+        }
+
+        .btn:hover {
+            filter: brightness(1.06);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #1045bd, 0 15px 25px #145ceb45, inset 0 1px 1px #ffffff70
+        }
+
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #1045bd
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 22px;
+            padding-top: 19px;
+            border-top: 1px solid #edf1f7;
+            text-align: center;
+            color: #8997ac;
+            font-size: 11px
+        }
+
+        .form-footer a {
+            color: #1769ff;
+            font-weight: 800;
+            text-decoration: none;
+            transition: color .2s ease
+        }
+
+        .form-footer a:hover {
+            color: #0645c6;
+            text-decoration: underline
+        }
+
+        .note {
+            text-align: center;
+            margin-top: 19px;
+            color: #8999b0;
+            font-size: 10px
+        }
+
+        .note span {
+            color: #328dff
+        }
+
+        .caption {
+            position: absolute;
+            bottom: 22px;
+            color: #7d95b8;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-align: center
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: perspective(1200px) translateY(25px) rotateX(5deg) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: perspective(1200px) translateY(0) rotateX(0) scale(1)
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0)
+            }
+
+            50% {
+                transform: translateY(-22px) rotate(8deg)
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 4px #328dff18
+            }
+
+            50% {
+                box-shadow: 0 0 0 7px #328dff08
+            }
+        }
+
+        @media(max-width:520px) {
+            .scene {
+                padding: 24px 13px 55px
+            }
+
+            .login-card {
+                padding: 26px 22px 23px;
+                border-radius: 22px
+            }
+
+            .orb.one {
+                left: -25px
+            }
+
+            .orb.two {
+                right: -15px
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scene">
+        <div class="ambient one"></div>
+        <div class="ambient two"></div>
+        <div class="orb one"></div>
+        <div class="orb two"></div>
+        <div class="orb three"></div>
+
+        <main class="login-card" id="loginCard">
+
+
+            <div class="eyebrow"><span class="dot"></span> WELCOME BACK</div>
+            <h1>Sign in to<br><span>your account.</span></h1>
+            <p class="subtitle">Continue your journey to better health.</p>
+
+            {% if error %}
+            <div class="error-message" role="alert">
+                <i class="fas fa-circle-exclamation"></i><span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <div class="input-box">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com"
+                            autocomplete="email" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-box">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" name="password" class="form-control"
+                            placeholder="Enter your password" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password"
+                            aria-pressed="false">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">
+                    <span>Sign in</span><i class="fas fa-arrow-right"></i>
+                </button>
+
+                <div class="form-footer">
+                    <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+                    <span>·</span>
+                    <a href="{{ url_for('register') }}">Create an account</a>
+                </div>
+            </form>
+
+            <p class="note"><span>✦</span> Your health journey, all in one place</p>
+        </main>
+
+        <div class="caption">SMARTER HEALTH · BETTER LIVING</div>
+    </div>
+
+    <script>
+        const password = document.getElementById('password');
+        const toggle = document.getElementById('togglePassword');
+
+        toggle.addEventListener('click', () => {
+            const show = password.type === 'password';
+            password.type = show ? 'text' : 'password';
+            toggle.innerHTML = show
+                ? '<i class="fas fa-eye-slash"></i>'
+                : '<i class="fas fa-eye"></i>';
+            toggle.setAttribute('aria-pressed', String(show));
+            toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        });
+
+        const card = document.getElementById('loginCard');
+        const scene = document.querySelector('.scene');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+        if (finePointer.matches && !reduceMotion.matches) {
+            scene.addEventListener('pointermove', (event) => {
+                const rect = card.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width;
+                const y = (event.clientY - rect.top) / rect.height;
+                card.style.transform =
+                    `perspective(1200px) rotateX(${(0.5 - y) * 4}deg) rotateY(${(x - 0.5) * 4}deg)`;
+            });
+
+            scene.addEventListener('pointerleave', () => {
+                card.style.transform =
+                    'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+            });
+        }
+    </script>
+</body>
+
+</html>

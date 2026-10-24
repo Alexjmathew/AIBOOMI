@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | PhysioTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #f2f7fd;
+            --white: #fff;
+            --ink: #0a2342;
+            --ink-2: #4a6283;
+            --ink-3: #8196b3;
+            --blue-900: #0a3b8c;
+            --blue-700: #0a4fb0;
+            --blue-600: #0b63ce;
+            --blue-500: #2a82f0;
+            --blue-300: #8fbaf5;
+            --blue-200: #cfe2fb;
+            --blue-100: #e5f0fe;
+            --blue-50: #f0f6ff;
+            --teal: #0aa5b8;
+            --line: #dbe6f4;
+            --lift: 0 1px 0 #fff inset, 0 1px 2px rgba(10, 35, 66, .06), 0 8px 18px -6px rgba(11, 99, 206, .16), 0 28px 44px -22px rgba(10, 35, 66, .22);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Figtree', system-ui, sans-serif;
+            color: var(--ink);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: radial-gradient(900px 480px at 90% -8%, #dcebff, transparent 60%), linear-gradient(180deg, #f7fbff, var(--paper))
+        }
+
+        h1 {
+            font-family: 'Sora', sans-serif;
+            letter-spacing: -.02em
+        }
+
+        svg.i {
+            width: 1.1em;
+            height: 1.1em;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0
+        }
+
+        :focus-visible {
+            outline: 3px solid var(--blue-500);
+            outline-offset: 2px
+        }
+
+        .page {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 26px 24px 64px
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 30px
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font: 700 17px 'Sora', sans-serif
+        }
+
+        .mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(160deg, var(--blue-500), var(--blue-900));
+            display: grid;
+            place-items: center;
+            color: #fff;
+            box-shadow: 0 5px 0 -1px #08306f, 0 10px 16px -6px rgba(11, 99, 206, .5);
+            transform: translateY(-2px)
+        }
+
+        .mark .i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.2
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--blue-600);
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: 0 3px 0 var(--blue-200);
+            transition: transform .12s, box-shadow .12s
+        }
+
+        .back:hover {
+            transform: translateY(-1px)
+        }
+
+        .back:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--blue-200)
+        }
+
+        .intro {
+            margin-bottom: 6px
+        }
+
+        .intro h1 {
+            font-size: clamp(30px, 4vw, 44px);
+            font-weight: 800;
+            color: var(--blue-900);
+            line-height: 1.1
+        }
+
+        .intro p {
+            color: var(--ink-2);
+            margin-top: 8px;
+            max-width: 56ch
+        }
+
+        /* 3D podium: each step is a real box (front, top, right faces) */
+        .podium {
+            perspective: 1500px;
+            padding: 56px 0 30px;
+            margin-bottom: 10px
+        }
+
+        .podium-in {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: end;
+            gap: 26px;
+            max-width: 860px;
+            margin: 0 auto;
+            transform-style: preserve-3d;
+            transform: rotateX(-11deg) rotateY(-13deg)
+        }
+
+        .step {
+            --d: 64px;
+            --h: 200px;
+            position: relative;
+            height: var(--h);
+            transform-style: preserve-3d;
+            animation: rise .9s cubic-bezier(.2, .8, .2, 1) both
+        }
+
+        .step.s1 {
+            --h: 236px;
+            order: 2;
+            animation-delay: .15s
+        }
+
+        .step.s2 {
+            --h: 184px;
+            order: 1
+        }
+
+        .step.s3 {
+            --h: 150px;
+            order: 3;
+            animation-delay: .3s
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(60px);
+                opacity: 0
+            }
+
+            to {
+                transform: none;
+                opacity: 1
+            }
+        }
+
+        .face {
+            position: absolute
+        }
+
+        .front {
+            inset: 0;
+            transform: translateZ(calc(var(--d)/2));
+            border-radius: 6px 6px 0 0;
+            background: linear-gradient(180deg, #fff, var(--blue-50));
+            border: 1px solid var(--blue-200);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 12px 12px;
+            text-align: center;
+            overflow: hidden
+        }
+
+        .top-f {
+            left: 0;
+            top: calc(var(--d)/-2);
+            width: 100%;
+            height: var(--d);
+            transform: rotateX(90deg);
+            background: linear-gradient(180deg, #fff, var(--blue-100));
+            border: 1px solid var(--blue-200)
+        }
+
+        .side {
+            top: 0;
+            left: calc(100% - var(--d)/2);
+            width: var(--d);
+            height: 100%;
+            transform: rotateY(90deg);
+            background: linear-gradient(90deg, var(--blue-300), var(--blue-500));
+            border: 1px solid var(--blue-300)
+        }
+
+        .s1 .front {
+            background: linear-gradient(180deg, var(--blue-600), var(--blue-900));
+            border-color: var(--blue-900);
+            color: #fff
+        }
+
+        .s1 .top-f {
+            background: linear-gradient(180deg, #cfe2fb, #8fbaf5);
+            border-color: var(--blue-300)
+        }
+
+        .s1 .side {
+            background: linear-gradient(90deg, var(--blue-700), #073a85);
+            border-color: #073a85
+        }
+
+        .shadow {
+            position: absolute;
+            left: -6%;
+            bottom: calc(var(--d)/-2);
+            width: 112%;
+            height: var(--d);
+            background: radial-gradient(closest-side, rgba(10, 35, 66, .28), transparent);
+            transform: translateZ(calc(var(--d)/-2)) rotateX(90deg) translateZ(-1px);
+            filter: blur(6px);
+            pointer-events: none
+        }
+
+        .pos {
+            font: 800 34px 'Sora', sans-serif;
+            line-height: 1;
+            color: var(--blue-600)
+        }
+
+        .s1 .pos {
+            color: #fff;
+            font-size: 40px
+        }
+
+        .p-av {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            margin: 10px 0 8px;
+            display: grid;
+            place-items: center;
+            font: 700 22px 'Sora', sans-serif;
+            color: var(--blue-900);
+            background: #fff;
+            border: 3px solid var(--blue-200);
+            box-shadow: 0 4px 0 var(--blue-200)
+        }
+
+        .s1 .p-av {
+            border-color: var(--blue-300);
+            box-shadow: 0 4px 0 rgba(255, 255, 255, .25)
+        }
+
+        .p-name {
+            font-weight: 700;
+            font-size: 15px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .p-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: auto;
+            padding-top: 8px
+        }
+
+        .p-stats b {
+            display: block;
+            font: 700 18px 'Sora', sans-serif;
+            color: var(--blue-600);
+            line-height: 1.2
+        }
+
+        .s1 .p-stats b {
+            color: #fff
+        }
+
+        .p-stats span {
+            font-size: 12px;
+            color: var(--ink-2)
+        }
+
+        .s1 .p-stats span {
+            color: var(--blue-200)
+        }
+
+        /* Table */
+        .board {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: var(--lift);
+            overflow: hidden
+        }
+
+        .cols {
+            display: grid;
+            grid-template-columns: 76px minmax(160px, 1.3fr) 110px 120px 110px minmax(180px, 1.4fr);
+            gap: 10px;
+            align-items: center;
+            padding: 14px 24px
+        }
+
+        .head {
+            background: var(--blue-50);
+            border-bottom: 1px solid var(--line);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-2)
+        }
+
+        .row {
+            border-bottom: 1px solid var(--line);
+            transition: background .15s;
+            animation: in .45s ease backwards
+        }
+
+        .row:last-child {
+            border-bottom: 0
+        }
+
+        .row:hover {
+            background: var(--blue-50)
+        }
+
+        @keyframes in {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .rank-chip {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font: 700 15px 'Sora', sans-serif;
+            color: var(--ink-2);
+            background: var(--blue-50);
+            border: 1px solid var(--line)
+        }
+
+        .top-1 .rank-chip {
+            background: linear-gradient(160deg, var(--blue-500), var(--blue-900));
+            color: #fff;
+            border-color: var(--blue-900);
+            box-shadow: 0 3px 0 #08306f
+        }
+
+        .top-2 .rank-chip {
+            background: var(--blue-300);
+            color: var(--blue-900);
+            border-color: var(--blue-300);
+            box-shadow: 0 3px 0 #6c9fe0
+        }
+
+        .top-3 .rank-chip {
+            background: var(--blue-100);
+            color: var(--blue-700);
+            border-color: var(--blue-200);
+            box-shadow: 0 3px 0 var(--blue-200)
+        }
+
+        .who {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0
+        }
+
+        .av {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            color: var(--blue-600);
+            background: var(--blue-100);
+            border: 1px solid var(--blue-200);
+            flex-shrink: 0
+        }
+
+        .who span {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .num {
+            font: 700 17px 'Sora', sans-serif
+        }
+
+        .num small {
+            display: block;
+            font: 500 12px 'Figtree', sans-serif;
+            color: var(--ink-3)
+        }
+
+        .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--blue-900);
+            background: var(--blue-100);
+            border: 1px solid var(--blue-200);
+            padding: 3px 10px;
+            border-radius: 999px
+        }
+
+        .tag .i {
+            width: 13px;
+            height: 13px;
+            color: var(--blue-500)
+        }
+
+        .none {
+            padding: 46px 20px;
+            text-align: center;
+            color: var(--ink-3)
+        }
+
+        @media(max-width:1000px) {
+            .cols {
+                grid-template-columns: 60px minmax(0, 1fr) 90px minmax(120px, 1fr)
+            }
+
+            .c-time,
+            .c-sess {
+                display: none
+            }
+        }
+
+        @media(max-width:640px) {
+            .page {
+                padding: 18px 14px 48px
+            }
+
+            .podium {
+                padding-top: 40px
+            }
+
+            .podium-in {
+                gap: 10px;
+                transform: rotateX(-10deg) rotateY(-9deg)
+            }
+
+            .step {
+                --d: 36px
+            }
+
+            .step.s1 {
+                --h: 214px
+            }
+
+            .step.s2 {
+                --h: 170px
+            }
+
+            .step.s3 {
+                --h: 144px
+            }
+
+            .front {
+                padding: 12px 6px 8px
+            }
+
+            .p-av {
+                width: 40px;
+                height: 40px;
+                font-size: 17px
+            }
+
+            .p-name {
+                font-size: 13px
+            }
+
+            .p-stats {
+                gap: 8px
+            }
+
+            .p-stats b {
+                font-size: 15px
+            }
+
+            .p-stats .ps2 {
+                display: none
+            }
+
+            .cols {
+                grid-template-columns: 48px minmax(0, 1fr) 70px;
+                padding: 12px 14px
+            }
+
+            .c-badges {
+                display: none
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-pulse" viewBox="0 0 24 24">
+                <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />
+            </symbol>
+            <symbol id="i-back" viewBox="0 0 24 24">
+                <path d="M14.5 6l-6 6 6 6" />
+            </symbol>
+            <symbol id="i-award" viewBox="0 0 24 24">
+                <circle cx="12" cy="9" r="5.5" />
+                <path d="M8.5 13.5L7 21l5-2.8 5 2.8-1.5-7.5" />
+            </symbol>
+            <symbol id="i-spark" viewBox="0 0 24 24">
+                <path d="M12 4l2.2 5.3L20 10l-4.4 3.8L17 20l-5-3-5 3 1.4-6.2L4 10l5.8-.7z" />
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="page">
+        <header class="top">
+            <div class="brand">
+                <div class="mark"><svg class="i">
+                        <use href="#i-pulse" />
+                    </svg></div>PhysioTrack
+            </div>
+            <a href="{{ url_for('profile') }}" class="back"><svg class="i">
+                    <use href="#i-back" />
+                </svg> Back to profile</a>
+        </header>
+
+        <div class="intro">
+            <h1>Leaderboard</h1>
+            <p>Everyone ranked by total repetitions across all logged sessions.</p>
+        </div>
+
+        {% if leaderboard|length >= 3 %}
+        <section class="podium" aria-label="Top three">
+            <div class="podium-in">
+                {% for i in [0, 1, 2] %}
+                {% set u = leaderboard[i] %}
+                <div class="step s{{ i + 1 }}">
+                    <div class="face top-f"></div>
+                    <div class="face side"></div>
+                    <div class="face front">
+                        <div class="pos">{{ i + 1 }}</div>
+                        <div class="p-av">{{ u.username|first|upper }}</div>
+                        <div class="p-name">{{ u.username }}</div>
+                        <div class="p-stats">
+                            <div><b>{{ u.total_reps }}</b><span>reps</span></div>
+                            <div class="ps2"><b>{{ u.total_sessions }}</b><span>sessions</span></div>
+                        </div>
+                    </div>
+                    <div class="shadow"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="board" style="margin-top:{% if leaderboard|length >= 3 %}8px{% else %}30px{% endif %}">
+            <div class="cols head">
+                <div>Rank</div>
+                <div>User</div>
+                <div>Total reps</div>
+                <div class="c-time">Total time</div>
+                <div class="c-sess">Sessions</div>
+                <div class="c-badges">Badges</div>
+            </div>
+
+            {% for user in leaderboard %}
+            <div class="cols row {% if loop.index <= 3 %}top-{{ loop.index }}{% endif %}"
+                style="animation-delay: {{ (loop.index0 * 0.05)|round(2) }}s">
+                <div>
+                    <div class="rank-chip">{{ loop.index }}</div>
+                </div>
+                <div class="who">
+                    <div class="av">{{ user.username|first|upper }}</div><span>{{ user.username }}</span>
+                </div>
+                <div class="num">{{ user.total_reps }}<small>reps</small></div>
+                <div class="num c-time">{{ user.total_time }}<small>seconds</small></div>
+                <div class="num c-sess">{{ user.total_sessions }}<small>sessions</small></div>
+                <div class="tags c-badges">
+                    {% if user.badges is iterable and user.badges is not string %}
+                    {% for badge in user.badges %}
+                    <span class="tag"><svg class="i">
+                            <use href="#i-award" />
+                        </svg>{{ badge }}</span>
+                    {% endfor %}
+                    {% elif user.badges %}
+                    <span class="tag"><svg class="i">
+                            <use href="#i-award" />
+                        </svg>{{ user.badges }}</span>
+                    {% else %}
+                    <span class="tag"><svg class="i">
+                            <use href="#i-spark" />
+                        </svg>Newbie</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="none">No sessions have been logged yet.</div>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+
+</html>

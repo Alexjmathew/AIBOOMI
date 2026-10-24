@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminders | PhysioTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --blue-950: #071c45;
+            --blue-900: #0a2a66;
+            --blue-700: #1556c0;
+            --blue-500: #2f80ed;
+            --blue-300: #7fb5ff;
+            --blue-100: #e6f1ff;
+            --gray: #5b78a8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--blue-900);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #eaf3ff, #ffffff, #d6e8ff, #ffffff);
+            background-size: 400% 400%;
+            animation: bgShift 18s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* ---------- Floating 3D background ---------- */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+            animation: float 11s ease-in-out infinite;
+        }
+
+        .orb.o1 {
+            width: 340px;
+            height: 340px;
+            background: rgba(47, 128, 237, .25);
+            top: -90px;
+            left: 200px;
+        }
+
+        .orb.o2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(127, 181, 255, .35);
+            bottom: -140px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(30px) scale(1.08);
+            }
+        }
+
+        .scene {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            perspective: 1200px;
+        }
+
+        .cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: spin 20s linear infinite, bob 7s ease-in-out infinite;
+            opacity: .7;
+        }
+
+        .cube span {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(47, 128, 237, .45);
+            background: linear-gradient(135deg, rgba(127, 181, 255, .3), rgba(255, 255, 255, .5));
+        }
+
+        .cube span:nth-child(1) {
+            transform: translateZ(30px);
+        }
+
+        .cube span:nth-child(2) {
+            transform: rotateY(180deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(3) {
+            transform: rotateY(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(5) {
+            transform: rotateX(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(30px);
+        }
+
+        .cube.c1 {
+            top: 14%;
+            right: 6%;
+        }
+
+        .cube.c2 {
+            top: 62%;
+            right: 3%;
+            width: 42px;
+            height: 42px;
+            animation-duration: 15s, 5s;
+        }
+
+        .cube.c3 {
+            top: 78%;
+            left: 280px;
+            width: 50px;
+            height: 50px;
+            animation-duration: 25s, 8s;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            to {
+                transform: rotateX(360deg) rotateY(360deg);
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                margin-top: 0;
+            }
+
+            50% {
+                margin-top: -26px;
+            }
+        }
+
+        /* ---------- Layout ---------- */
+        .layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: linear-gradient(170deg, var(--blue-500), var(--blue-900));
+            color: #fff;
+            padding: 1.5rem 1rem;
+            box-shadow: 8px 0 30px -10px rgba(21, 86, 192, .5);
+        }
+
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, .25), transparent 50%);
+        }
+
+        .sidebar>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+        }
+
+        .logo-3d {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #ffffff, #cfe3ff);
+            color: var(--blue-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 5px 0 rgba(10, 42, 102, .45), 0 10px 18px rgba(0, 0, 0, .25);
+            animation: logoSway 5s ease-in-out infinite;
+        }
+
+        @keyframes logoSway {
+
+            0%,
+            100% {
+                transform: rotateX(8deg) rotateY(-10deg);
+            }
+
+            50% {
+                transform: rotateX(-6deg) rotateY(12deg);
+            }
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: .7rem 1rem;
+            border-radius: 12px;
+            margin-bottom: .35rem;
+            color: rgba(255, 255, 255, .85);
+            text-decoration: none;
+            font-size: .92rem;
+            transition: transform .25s, background .25s, box-shadow .25s;
+        }
+
+        .nav a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: rgba(255, 255, 255, .18);
+            color: #fff;
+            transform: translateX(6px);
+            box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .3);
+        }
+
+        /* ---------- Main ---------- */
+        .main {
+            padding: 2rem;
+        }
+
+        /* ---------- Header banner (no photo) ---------- */
+        .page-header {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            margin-bottom: 1.8rem;
+            padding: 2rem 2.2rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            background: linear-gradient(120deg, var(--blue-900), var(--blue-700) 55%, var(--blue-500));
+            box-shadow: 0 30px 50px -20px rgba(21, 86, 192, .55);
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .page-header::before {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            right: -80px;
+            top: -140px;
+            background: radial-gradient(circle, rgba(255, 255, 255, .35), transparent 70%);
+        }
+
+        .page-header::after {
+            content: "";
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            left: 40%;
+            bottom: -120px;
+            background: radial-gradient(circle, rgba(127, 181, 255, .4), transparent 70%);
+        }
+
+        .header-icon {
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--blue-700);
+            background: linear-gradient(145deg, #ffffff, #cfe3ff);
+            box-shadow: 0 6px 0 rgba(7, 28, 69, .45), 0 14px 22px rgba(0, 0, 0, .3);
+            animation: ring 3.5s ease-in-out infinite;
+            transform-origin: 50% 10%;
+        }
+
+        @keyframes ring {
+
+            0%,
+            60%,
+            100% {
+                transform: rotate(0);
+            }
+
+            68% {
+                transform: rotate(14deg);
+            }
+
+            76% {
+                transform: rotate(-12deg);
+            }
+
+            84% {
+                transform: rotate(8deg);
+            }
+
+            92% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        .page-header>div:last-child {
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            opacity: .9;
+        }
+
+        /* ---------- 3D cards ---------- */
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(35px) rotateX(14deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(230, 241, 255, .8));
+            border: 1px solid rgba(255, 255, 255, .9);
+            border-radius: 20px;
+            padding: 1.8rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 0 #fff inset, 0 24px 40px -18px rgba(21, 86, 192, .4), 0 8px 16px -8px rgba(21, 86, 192, .2);
+            transform-style: preserve-3d;
+            transition: transform .15s ease-out, box-shadow .3s;
+            will-change: transform;
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, .65), transparent 55%);
+        }
+
+        .card:nth-of-type(2) {
+            animation-delay: .12s;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateZ(25px);
+        }
+
+        .card-title i {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: .95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #5aa2ff, var(--blue-700));
+            box-shadow: 0 3px 0 #0e3f8f, 0 8px 12px -4px rgba(21, 86, 192, .5);
+        }
+
+        /* ---------- Form ---------- */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 14px;
+            align-items: end;
+            transform: translateZ(25px);
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .76rem;
+            font-weight: 600;
+            color: var(--blue-700);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: .92rem;
+            font-family: 'Poppins', sans-serif;
+            color: var(--blue-900);
+            background: #fff;
+            border: 2px solid #d3e4ff;
+            border-radius: 12px;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(21, 86, 192, .08), 0 4px 10px -4px rgba(21, 86, 192, .15);
+            transition: border-color .25s, box-shadow .25s, transform .25s;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 4px rgba(47, 128, 237, .18), 0 10px 20px -8px rgba(47, 128, 237, .4);
+            transform: translateY(-2px);
+        }
+
+        /* ---------- 3D button ---------- */
+        .btn-add {
+            position: relative;
+            overflow: hidden;
+            padding: 12px 24px;
+            font-size: .95rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(180deg, #4b98ff, var(--blue-700));
+            box-shadow: 0 5px 0 #0e3f8f, 0 12px 20px -6px rgba(21, 86, 192, .5);
+            transition: transform .12s, box-shadow .12s, filter .2s;
+        }
+
+        .btn-add::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, .55), transparent);
+            transform: skewX(-20deg);
+            transition: left .6s;
+        }
+
+        .btn-add:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        .btn-add:hover::after {
+            left: 140%;
+        }
+
+        .btn-add:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0e3f8f, 0 4px 8px -2px rgba(21, 86, 192, .5);
+        }
+
+        /* ---------- Reminder list ---------- */
+        .reminder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transform: translateZ(20px);
+        }
+
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fff;
+            border: 1px solid #d9e8ff;
+            border-radius: 16px;
+            padding: 14px 18px;
+            box-shadow: 0 4px 0 #d3e4ff, 0 12px 20px -10px rgba(21, 86, 192, .3);
+            transition: transform .2s, box-shadow .2s;
+            animation: slideIn .5s ease both;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .reminder-item:nth-child(2) {
+            animation-delay: .06s;
+        }
+
+        .reminder-item:nth-child(3) {
+            animation-delay: .12s;
+        }
+
+        .reminder-item:nth-child(4) {
+            animation-delay: .18s;
+        }
+
+        .reminder-item:nth-child(n+5) {
+            animation-delay: .24s;
+        }
+
+        .reminder-item:hover {
+            transform: translateX(6px) translateY(-2px);
+            box-shadow: 0 6px 0 #c3d9fb, 0 18px 26px -10px rgba(21, 86, 192, .4);
+        }
+
+        .reminder-time {
+            min-width: 92px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: linear-gradient(160deg, #5aa2ff, var(--blue-700));
+            box-shadow: 0 4px 0 #0e3f8f, 0 10px 16px -6px rgba(21, 86, 192, .5);
+        }
+
+        .reminder-msg {
+            flex: 1;
+            font-size: .95rem;
+            color: var(--blue-900);
+        }
+
+        .badge-active {
+            background: var(--blue-100);
+            color: var(--blue-700);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 0 #c9defc;
+        }
+
+        .badge-active i {
+            margin-right: 4px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2.5rem;
+            color: var(--gray);
+            transform: translateZ(20px);
+        }
+
+        .no-data i {
+            display: block;
+            font-size: 2.6rem;
+            margin-bottom: 14px;
+            color: var(--blue-300);
+            animation: bob2 3s ease-in-out infinite;
+        }
+
+        @keyframes bob2 {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .info-box {
+            background: var(--blue-100);
+            border-left: 5px solid var(--blue-500);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: .85rem;
+            color: var(--blue-900);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 1.2rem;
+            box-shadow: 0 4px 0 #d3e4ff;
+            transform: translateZ(15px);
+        }
+
+        .info-box i {
+            color: var(--blue-500);
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .cube {
+                display: none;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .reminder-item {
+                flex-wrap: wrap;
+            }
+
+            .page-header {
+                padding: 1.4rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- decorative 3D background -->
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="scene" aria-hidden="true">
+        {% for n in range(1, 4) %}
+        <div class="cube c{{ n }}"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        {% endfor %}
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-3d"><i class="fas fa-heartbeat"></i></div>
+                PhysioTrack
+            </div>
+            <nav class="nav">
+                <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+                <a href="{{ url_for('select_exercise') }}"><i class="fas fa-dumbbell"></i> Workout</a>
+                <a href="{{ url_for('progress') }}"><i class="fas fa-chart-line"></i> Progress</a>
+                <a href="{{ url_for('measurements') }}"><i class="fas fa-ruler"></i> Measurements</a>
+                <a href="{{ url_for('reminders') }}" class="active"><i class="fas fa-bell"></i> Reminders</a>
+                <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+                <a href="{{ url_for('recommendations') }}"><i class="fas fa-lightbulb"></i> Tips</a>
+                <a href="{{ url_for('manual_log') }}"><i class="fas fa-plus-circle"></i> Log</a>
+                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <div class="page-header">
+                <div class="header-icon"><i class="fas fa-bell"></i></div>
+                <div>
+                    <h1>Workout Reminders</h1>
+                    <p>Set reminders to keep your physio routine on track</p>
+                </div>
+            </div>
+
+            <!-- Add reminder form -->
+            <div class="card tilt">
+                <div class="card-title"><i class="fas fa-plus"></i> Add Reminder</div>
+                <form method="POST" action="{{ url_for('reminders') }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="r_time">Time</label>
+                            <input type="time" id="r_time" name="time" class="form-control" value="08:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="r_msg">Message</label>
+                            <input type="text" id="r_msg" name="message" class="form-control"
+                                placeholder="e.g. Time for your morning run!" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn-add"><i class="fas fa-bell"></i> Add</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="info-box">
+                    <i class="fas fa-info-circle" style="margin-top:2px;"></i>
+                    <div>
+                        <strong>Note:</strong> Reminders are stored in your profile.
+                        Browser-based notifications require the app to be open. For mobile push notifications,
+                        a service worker or native app would be needed.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminder list -->
+            <div class="card tilt">
+                <div class="card-title"><i class="fas fa-list"></i> Your Reminders</div>
+                {% if reminders %}
+                <div class="reminder-list">
+                    {% for r in reminders %}
+                    <div class="reminder-item">
+                        <div class="reminder-time">{{ r.time }}</div>
+                        <div class="reminder-msg">{{ r.message }}</div>
+                        {% if r.active %}
+                        <span class="badge-active"><i class="fas fa-check-circle"></i> Active</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-data">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No reminders set yet. Add one above to stay on track!</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 3D tilt on cards
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('.tilt').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    const r = el.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width;
+                    const py = (e.clientY - r.top) / r.height;
+                    el.style.transform = 'rotateY(' + ((px - .5) * 5) + 'deg) rotateX(' + (-(py - .5) * 5) + 'deg)';
+                    el.style.setProperty('--mx', (px * 100) + '%');
+                    el.style.setProperty('--my', (py * 100) + '%');
+                });
+                el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+            });
+        })();
+
+        // Browser notification permission (nice-to-have)
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Check reminders against current time every minute
+        const reminders = {{ reminders | tojson }};
+        function checkReminders() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const now = new Date();
+            const hhmm = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            reminders.forEach(r => {
+                if (r.active && r.time === hhmm) {
+                    new Notification('PhysioTrack Reminder', { body: r.message, icon: '/static/favicon.ico' });
+                }
+            });
+        }
+        setInterval(checkReminders, 60000);
+        checkReminders();
+    </script>
+</body>
+
+</html>

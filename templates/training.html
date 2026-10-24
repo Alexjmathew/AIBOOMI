@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysioTrack - Training</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --blue-950: #071c45;
+            --blue-900: #0a2a66;
+            --blue-700: #1556c0;
+            --blue-500: #2f80ed;
+            --blue-300: #7fb5ff;
+            --blue-100: #e6f1ff;
+            --gray: #5b78a8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--blue-900);
+            min-height: 100vh;
+            padding: 24px;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #eaf3ff, #ffffff, #d6e8ff, #ffffff);
+            background-size: 400% 400%;
+            animation: bgShift 18s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* ---------- Floating 3D background ---------- */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+            animation: float 11s ease-in-out infinite;
+        }
+
+        .orb.o1 {
+            width: 340px;
+            height: 340px;
+            background: rgba(47, 128, 237, .25);
+            top: -90px;
+            left: -60px;
+        }
+
+        .orb.o2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(127, 181, 255, .35);
+            bottom: -140px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(30px) scale(1.08);
+            }
+        }
+
+        .scene {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            perspective: 1200px;
+        }
+
+        .cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: spin 20s linear infinite, bob 7s ease-in-out infinite;
+            opacity: .7;
+        }
+
+        .cube span {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(47, 128, 237, .45);
+            background: linear-gradient(135deg, rgba(127, 181, 255, .3), rgba(255, 255, 255, .5));
+        }
+
+        .cube span:nth-child(1) {
+            transform: translateZ(30px);
+        }
+
+        .cube span:nth-child(2) {
+            transform: rotateY(180deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(3) {
+            transform: rotateY(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(5) {
+            transform: rotateX(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(30px);
+        }
+
+        .cube.c1 {
+            top: 12%;
+            left: 3%;
+        }
+
+        .cube.c2 {
+            top: 70%;
+            left: 2%;
+            width: 42px;
+            height: 42px;
+            animation-duration: 15s, 5s;
+        }
+
+        .cube.c3 {
+            top: 18%;
+            right: 3%;
+            width: 50px;
+            height: 50px;
+            animation-duration: 25s, 8s;
+        }
+
+        .cube.c4 {
+            top: 74%;
+            right: 3%;
+            animation-duration: 18s, 6s;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            to {
+                transform: rotateX(360deg) rotateY(360deg);
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                margin-top: 0;
+            }
+
+            50% {
+                margin-top: -26px;
+            }
+        }
+
+        /* ---------- Page shell ---------- */
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ---------- Top banner ---------- */
+        .topbar {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1.5rem;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient(120deg, var(--blue-900), var(--blue-700) 55%, var(--blue-500));
+            box-shadow: 0 30px 50px -20px rgba(21, 86, 192, .55);
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .topbar::before {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            right: -80px;
+            top: -150px;
+            background: radial-gradient(circle, rgba(255, 255, 255, .35), transparent 70%);
+        }
+
+        .logo-3d {
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            font-size: 26px;
+            color: var(--blue-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #ffffff, #cfe3ff);
+            box-shadow: 0 6px 0 rgba(7, 28, 69, .45), 0 14px 22px rgba(0, 0, 0, .3);
+            animation: logoSway 5s ease-in-out infinite;
+        }
+
+        @keyframes logoSway {
+
+            0%,
+            100% {
+                transform: rotateX(8deg) rotateY(-10deg);
+            }
+
+            50% {
+                transform: rotateX(-6deg) rotateY(12deg);
+            }
+        }
+
+        .topbar-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .topbar-text small {
+            opacity: .85;
+            font-size: .8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .topbar h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(35px) rotateX(14deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ---------- 3D glass card (shared) ---------- */
+        .card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(230, 241, 255, .8));
+            border: 1px solid rgba(255, 255, 255, .9);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 0 #fff inset, 0 24px 40px -18px rgba(21, 86, 192, .4), 0 8px 16px -8px rgba(21, 86, 192, .2);
+            transform-style: preserve-3d;
+            transition: transform .15s ease-out, box-shadow .3s;
+            will-change: transform;
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, .65), transparent 55%);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateZ(25px);
+        }
+
+        .card-title i {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #5aa2ff, var(--blue-700));
+            box-shadow: 0 3px 0 #0e3f8f, 0 8px 12px -4px rgba(21, 86, 192, .5);
+        }
+
+        /* ---------- Video area ---------- */
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            perspective: 1400px;
+        }
+
+        .video-card {
+            padding: 1.1rem;
+        }
+
+        .video-card .frame {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            height: 320px;
+            background: linear-gradient(135deg, var(--blue-900), var(--blue-500));
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 2px var(--blue-300), 0 18px 28px -10px rgba(21, 86, 192, .55);
+            transform: translateZ(20px);
+        }
+
+        .video-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .live-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
+            background: rgba(7, 28, 69, .75);
+            backdrop-filter: blur(6px);
+        }
+
+        .live-badge::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #4cc9f0;
+            box-shadow: 0 0 0 0 rgba(76, 201, 240, .7);
+            animation: livePulse 1.6s infinite;
+        }
+
+        @keyframes livePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 201, 240, .7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 201, 240, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 201, 240, 0);
+            }
+        }
+
+        .frame::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            top: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(127, 181, 255, .9), transparent);
+            animation: scan 3.5s linear infinite;
+        }
+
+        .video-card.ref .frame::after {
+            display: none;
+        }
+
+        @keyframes scan {
+            from {
+                top: 0;
+            }
+
+            to {
+                top: 100%;
+            }
+        }
+
+        /* ---------- HUD ---------- */
+        .hud {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            perspective: 1400px;
+        }
+
+        .hud .card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring-wrap {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            transform: translateZ(40px);
+        }
+
+        .ring-wrap svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #d3e4ff;
+            stroke-width: 12;
+        }
+
+        .ring-fg {
+            fill: none;
+            stroke: url(#ringGrad);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 339.292;
+            stroke-dashoffset: 339.292;
+            transition: stroke-dashoffset .6s cubic-bezier(.2, .8, .2, 1);
+            filter: drop-shadow(0 4px 6px rgba(47, 128, 237, .45));
+        }
+
+        .ring-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .count {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--blue-700);
+            animation: pulseCount 2s ease-in-out infinite;
+        }
+
+        .count .sep {
+            color: var(--blue-300);
+            font-weight: 400;
+            margin: 0 2px;
+        }
+
+        @keyframes pulseCount {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .hud-label {
+            font-size: .72rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-top: .6rem;
+            transform: translateZ(15px);
+        }
+
+        .ring-center .hud-label {
+            margin-top: 4px;
+        }
+
+        .time {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--blue-700);
+            transform: translateZ(35px);
+        }
+
+        .time-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            margin-bottom: .7rem;
+            color: #fff;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #5aa2ff, var(--blue-700));
+            box-shadow: 0 5px 0 #0e3f8f, 0 12px 18px -6px rgba(21, 86, 192, .5);
+            transform: translateZ(35px);
+        }
+
+        .feedback {
+            width: 100%;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--blue-900);
+            padding: 1.2rem 1.4rem;
+            border-radius: 14px;
+            background: #fff;
+            border-left: 6px solid var(--blue-500);
+            box-shadow: 0 5px 0 #d3e4ff, 0 14px 22px -10px rgba(21, 86, 192, .35);
+            animation: slideIn 1s ease-in-out;
+            transform: translateZ(25px);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px) translateZ(25px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) translateZ(25px);
+                opacity: 1;
+            }
+        }
+
+        /* ---------- Controls ---------- */
+        .controls {
+            margin-bottom: 1.5rem;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: center;
+            transform: translateZ(25px);
+        }
+
+        .controls input {
+            flex: 1 1 200px;
+            max-width: 260px;
+            padding: 13px 15px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            color: var(--blue-900);
+            background: #fff;
+            border: 2px solid #d3e4ff;
+            border-radius: 12px;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(21, 86, 192, .08), 0 4px 10px -4px rgba(21, 86, 192, .15);
+            transition: border-color .25s, box-shadow .25s, transform .25s;
+        }
+
+        .controls input:focus {
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 4px rgba(47, 128, 237, .18), 0 10px 20px -8px rgba(47, 128, 237, .4);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 22px;
+            font-size: .95rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            background: linear-gradient(180deg, #4b98ff, var(--blue-700));
+            box-shadow: 0 5px 0 #0e3f8f, 0 12px 20px -6px rgba(21, 86, 192, .5);
+            transition: transform .12s, box-shadow .12s, filter .2s;
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, .55), transparent);
+            transform: skewX(-20deg);
+            transition: left .6s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        .btn:hover::after {
+            left: 140%;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0e3f8f, 0 4px 8px -2px rgba(21, 86, 192, .5);
+        }
+
+        .btn.alt {
+            background: linear-gradient(180deg, #2a4f9e, var(--blue-900));
+            box-shadow: 0 5px 0 #05163a, 0 12px 20px -6px rgba(10, 42, 102, .5);
+        }
+
+        .btn.alt:active {
+            box-shadow: 0 1px 0 #05163a;
+        }
+
+        .btn.light {
+            color: var(--blue-700);
+            background: #fff;
+            box-shadow: 0 5px 0 #c3d9fb, 0 12px 20px -6px rgba(21, 86, 192, .3);
+        }
+
+        .btn.light:active {
+            box-shadow: 0 1px 0 #c3d9fb;
+        }
+
+        /* ---------- Instructions ---------- */
+        .instructions {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .instructions p {
+            line-height: 1.8;
+            color: var(--blue-900);
+            transform: translateZ(15px);
+        }
+
+        .instructions b {
+            color: var(--blue-700);
+        }
+
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .video-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hud {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hud .card.fb {
+                grid-column: span 2;
+            }
+
+            .cube {
+                display: none;
+            }
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 14px;
+            }
+
+            .hud {
+                grid-template-columns: 1fr;
+            }
+
+            .hud .card.fb {
+                grid-column: span 1;
+            }
+
+            .video-card .frame {
+                height: 240px;
+            }
+
+            .topbar {
+                padding: 1.2rem;
+            }
+
+            .topbar h1 {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- decorative 3D background -->
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="scene" aria-hidden="true">
+        {% for n in range(1, 5) %}
+        <div class="cube c{{ n }}"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        {% endfor %}
+    </div>
+
+    <div class="page">
+        <div class="topbar">
+            <div class="logo-3d"><i class="fas fa-dumbbell"></i></div>
+            <div class="topbar-text">
+                <small>PhysioTrack Training</small>
+                <h1><span id="exerciseName">{{ session.get('exercise_name', 'Select an Exercise') }}</span></h1>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <div class="card video-card tilt">
+                <div class="card-title"><i class="fas fa-video"></i> Live Feed</div>
+                <div class="frame">
+                    <span class="live-badge">LIVE</span>
+                    <img src="{{ url_for('video_feed') }}" id="videoFeed" alt="Video Feed">
+                </div>
+            </div>
+            <div class="card video-card ref tilt">
+                <div class="card-title"><i class="fas fa-image"></i> Reference</div>
+                <div class="frame">
+                    <img src="{{ url_for('static', filename=session.get('exercise_image', '3_highkneeswarmup_1x1_v2 (1).png')) }}"
+                        alt="Reference Image"
+                        onerror="this.onerror=null; this.src='{{ url_for('static', filename='3_highkneeswarmup_1x1_v2 (1).png') }}';">
+                </div>
+            </div>
+        </div>
+
+        <div class="hud">
+            <div class="card tilt">
+                <div class="ring-wrap">
+                    <svg viewBox="0 0 120 120">
+                        <defs>
+                            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#7fb5ff" />
+                                <stop offset="100%" stop-color="#1556c0" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="54"></circle>
+                    </svg>
+                    <div class="ring-center">
+                        <div class="count"><span id="count">0</span><span class="sep">/</span><span id="target">0</span>
+                        </div>
+                        <div class="hud-label">Repetitions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card tilt">
+                <div class="time-icon"><i class="fas fa-stopwatch"></i></div>
+                <div class="time"><span id="time">0s</span></div>
+                <div class="hud-label">Time</div>
+            </div>
+
+            <div class="card fb tilt">
+                <div class="card-title" style="align-self:flex-start;"><i class="fas fa-comment-dots"></i> Coach
+                    Feedback</div>
+                <div class="feedback" id="feedback">Feedback: Begin Exercise!</div>
+            </div>
+        </div>
+
+        <div class="card controls tilt">
+            <div class="controls-row">
+                <input type="number" id="targetCount" placeholder="Enter target count">
+                <button class="btn" onclick="setTarget()"><i class="fas fa-play"></i> Start Exercise</button>
+                <button class="btn alt" id="pauseButton" onclick="togglePause()"><i class="fas fa-pause"
+                        id="pauseIcon"></i> <span id="pauseLabel">Pause</span></button>
+                <button class="btn light" onclick="saveSession()"><i class="fas fa-save"></i> Save Session</button>
+            </div>
+        </div>
+
+        <div class="card instructions tilt" id="instructions">
+            <div class="card-title"><i class="fas fa-list-ol"></i> Instructions</div>
+            <p id="exerciseInstructions">
+                Select an exercise to begin. Follow the reference image and feedback to perform the exercise correctly.
+            </p>
+        </div>
+
+        <div class="btn-container">
+            <a class="btn light" href="{{ url_for('select_exercise') }}"><i class="fas fa-arrow-left"></i> Back to
+                Exercise Selection</a>
+            <a class="btn light" href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Back to Profile</a>
+            <a class="btn alt" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <script>
+        // ---------- 3D tilt on cards ----------
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('.tilt').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    const r = el.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width;
+                    const py = (e.clientY - r.top) / r.height;
+                    el.style.transform = 'rotateY(' + ((px - .5) * 6) + 'deg) rotateX(' + (-(py - .5) * 6) + 'deg)';
+                    el.style.setProperty('--mx', (px * 100) + '%');
+                    el.style.setProperty('--my', (py * 100) + '%');
+                });
+                el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+            });
+        })();
+
+        // ---------- Progress ring + pause label helpers ----------
+        const RING_LEN = 339.292;
+        function updateRing(count, target) {
+            const ring = document.getElementById('ringFg');
+            const pct = target > 0 ? Math.min(count / target, 1) : 0;
+            ring.style.strokeDashoffset = RING_LEN * (1 - pct);
+        }
+        function setPauseLabel(isPaused) {
+            document.getElementById('pauseLabel').innerText = isPaused ? "Resume" : "Pause";
+            document.getElementById('pauseIcon').className = isPaused ? "fas fa-play" : "fas fa-pause";
+        }
+
+        // ---------- Original logic ----------
+        let lastCount = 0;
+        let exerciseInstructions = {
+            "knee_raises": `
+                Stand up straight with your legs slightly apart.<br>
+                Slowly raise your right knee to 90 degrees (or as high as you can), then slowly lower it back down to the floor.<br>
+                Slowly raise your left knee to 90 degrees (or as high as you can), then slowly lower it back down to the floor.<br>
+                Repeat the movement 10 times with each leg.<br>
+                <b>Tip:</b> If you struggle with balance, hold onto the back of a chair or a worktop.
+            `,
+            "squats": `
+                Stand with feet shoulder-width apart.<br>
+                Lower your body by bending your knees and hips, keeping your back straight.<br>
+                Go down until your thighs are parallel to the ground, then push back up to the starting position.<br>
+                Repeat the movement smoothly.<br>
+                <b>Tip:</b> Keep your knees over your toes and avoid leaning forward.
+            `,
+            "pushups": `
+                Start in a plank position with hands shoulder-width apart.<br>
+                Lower your body until your elbows form a 90-degree angle, then push back up.<br>
+                Keep your body in a straight line from head to heels.<br>
+                Repeat the movement steadily.<br>
+                <b>Tip:</b> Modify by dropping to your knees if needed.
+            `
+        };
+
+        // Update instructions based on exercise
+        function updateInstructions(exerciseName) {
+            document.getElementById('exerciseInstructions').innerHTML =
+                exerciseInstructions[exerciseName.toLowerCase()] || "Select an exercise to begin.";
+        }
+
+        // Convert number to word for natural speech
+        function numberToWord(num) {
+            const words = [
+                'Zero', 'One', 'Two', 'Three', 'Four', 'Five',
+                'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+                'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen',
+                'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty'
+            ];
+            return num <= 20 ? words[num] : num.toString();
+        }
+
+        // Speak the count
+        function speakCount(count) {
+            const utterance = new SpeechSynthesisUtterance(numberToWord(count));
+            utterance.lang = 'en-US';
+            utterance.volume = 1.0;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Fetch count and update UI
+        function fetchCount() {
+            fetch('/get_count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('count').innerText = data.count;
+                    document.getElementById('target').innerText = data.target;
+                    document.getElementById('feedback').innerText = `Feedback: ${data.feedback}`;
+                    document.getElementById('time').innerText = `${data.total_time.toFixed(2)}s`;
+                    setPauseLabel(data.is_paused);
+                    updateRing(data.count, data.target);
+                    if (data.exercise_complete) {
+                        alert(data.feedback);
+                    }
+                    if (data.count !== lastCount && data.count > 0) {
+                        speakCount(data.count);
+                        lastCount = data.count;
+                    }
+                    if (!data.exercise_complete) {
+                        setTimeout(fetchCount, 500);
+                    }
+                })
+                .catch(error => console.error('Error fetching count:', error));
+        }
+
+        // Set target count
+        function setTarget() {
+            const target = document.getElementById('targetCount').value;
+            if (target <= 0) {
+                alert("Please enter a valid target count.");
+                return;
+            }
+            fetch('/set_target', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        lastCount = 0;
+                        fetchCount();
+                    }
+                })
+                .catch(error => console.error('Error setting target:', error));
+        }
+
+        // Toggle pause/resume
+        function togglePause() {
+            fetch('/pause_resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        setPauseLabel(data.is_paused);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error toggling pause:', error));
+        }
+
+        // Save session
+        function saveSession() {
+            fetch('/save_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Session saved successfully!');
+                    } else {
+                        alert('Error saving session: ' + data.error);
+                    }
+                })
+                .catch(error => console.error('Error saving session:', error));
+        }
+
+        // Initialize instructions based on current exercise
+        updateInstructions("{{ session.get('exercise_name', '').lower() }}");
+
+        // Start polling for updates
+        fetchCount();
+    </script>
+</body>
+
+</html>

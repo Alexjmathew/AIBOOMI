@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - PhysioTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --blue-950: #071c45;
+            --blue-900: #0a2a66;
+            --blue-700: #1556c0;
+            --blue-500: #2f80ed;
+            --blue-300: #7fb5ff;
+            --blue-100: #e6f1ff;
+            --white: #ffffff;
+            --gray: #5b78a8;
+            --dark: #0a2a66;
+            --success: #4cc9f0;
+            --danger: #e5483b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            color: var(--blue-900);
+            line-height: 1.6;
+            background: linear-gradient(135deg, #eaf3ff, #ffffff, #d6e8ff, #ffffff);
+            background-size: 400% 400%;
+            animation: bgShift 18s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* ---------- Floating 3D background ---------- */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+            animation: float 11s ease-in-out infinite;
+        }
+
+        .orb.o1 {
+            width: 340px;
+            height: 340px;
+            background: rgba(47, 128, 237, .25);
+            top: -90px;
+            left: 200px;
+        }
+
+        .orb.o2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(127, 181, 255, .35);
+            bottom: -140px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(30px) scale(1.08);
+            }
+        }
+
+        .scene {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            perspective: 1200px;
+        }
+
+        .cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: spin 20s linear infinite, bob 7s ease-in-out infinite;
+            opacity: .7;
+        }
+
+        .cube span {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(47, 128, 237, .45);
+            background: linear-gradient(135deg, rgba(127, 181, 255, .3), rgba(255, 255, 255, .5));
+        }
+
+        .cube span:nth-child(1) {
+            transform: translateZ(30px);
+        }
+
+        .cube span:nth-child(2) {
+            transform: rotateY(180deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(3) {
+            transform: rotateY(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(5) {
+            transform: rotateX(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(30px);
+        }
+
+        .cube.c1 {
+            top: 14%;
+            right: 6%;
+        }
+
+        .cube.c2 {
+            top: 62%;
+            right: 3%;
+            width: 42px;
+            height: 42px;
+            animation-duration: 15s, 5s;
+        }
+
+        .cube.c3 {
+            top: 78%;
+            left: 280px;
+            width: 50px;
+            height: 50px;
+            animation-duration: 25s, 8s;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            to {
+                transform: rotateX(360deg) rotateY(360deg);
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                margin-top: 0;
+            }
+
+            50% {
+                margin-top: -26px;
+            }
+        }
+
+        /* ---------- Layout ---------- */
+        .dashboard {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: linear-gradient(170deg, var(--blue-500), var(--blue-900));
+            color: var(--white);
+            padding: 1.5rem 1rem;
+            box-shadow: 8px 0 30px -10px rgba(21, 86, 192, .5);
+        }
+
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, .25), transparent 50%);
+            pointer-events: none;
+        }
+
+        .sidebar>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+        }
+
+        .logo-3d {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #ffffff, #cfe3ff);
+            color: var(--blue-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 5px 0 rgba(10, 42, 102, .45), 0 10px 18px rgba(0, 0, 0, .25);
+            transform: rotateX(8deg) rotateY(-10deg);
+            animation: logoSway 5s ease-in-out infinite;
+        }
+
+        @keyframes logoSway {
+
+            0%,
+            100% {
+                transform: rotateX(8deg) rotateY(-10deg);
+            }
+
+            50% {
+                transform: rotateX(-6deg) rotateY(12deg);
+            }
+        }
+
+        .sidebar-header h3 {
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: .35rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: .7rem 1rem;
+            color: rgba(255, 255, 255, .85);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: transform .25s, background .25s, box-shadow .25s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, .18);
+            color: var(--white);
+            transform: translateX(6px) translateZ(0);
+            box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .3);
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.05rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* ---------- Main ---------- */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--blue-900), var(--blue-500));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, .8);
+            backdrop-filter: blur(8px);
+            padding: 6px 16px 6px 6px;
+            border-radius: 40px;
+            box-shadow: 0 8px 20px -8px rgba(21, 86, 192, .35);
+            font-weight: 500;
+        }
+
+        .user-profile img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blue-500);
+        }
+
+        /* ---------- Hero banner with photo ---------- */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+            border-radius: 22px;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(120deg, var(--blue-700), var(--blue-300));
+            box-shadow: 0 30px 50px -20px rgba(21, 86, 192, .5);
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .hero img.hero-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .9;
+            transform: scale(1.08);
+            animation: kenburns 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes kenburns {
+            to {
+                transform: scale(1.2) translate(-2%, -2%);
+            }
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(7, 28, 69, .88), rgba(21, 86, 192, .45) 55%, rgba(255, 255, 255, 0));
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+            padding: 1.8rem 2rem;
+            color: var(--white);
+            transform: translateZ(40px);
+        }
+
+        .hero-text h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+        }
+
+        .hero-text p {
+            opacity: .9;
+            margin: .2rem 0 1rem;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--white);
+            color: var(--blue-700);
+            padding: .6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 5px 0 #b6d3ff, 0 12px 20px -6px rgba(0, 0, 0, .3);
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+        }
+
+        .hero-cta:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #b6d3ff;
+        }
+
+        /* ---------- 3D cards ---------- */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            perspective: 1400px;
+        }
+
+        .span-4 {
+            grid-column: span 4;
+        }
+
+        .span-8 {
+            grid-column: span 8;
+        }
+
+        .card,
+        .profile-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(230, 241, 255, .8));
+            border: 1px solid rgba(255, 255, 255, .9);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 0 #fff inset, 0 24px 40px -18px rgba(21, 86, 192, .4), 0 8px 16px -8px rgba(21, 86, 192, .2);
+            transform-style: preserve-3d;
+            transition: transform .15s ease-out, box-shadow .3s;
+            will-change: transform;
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .card::before,
+        .profile-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, .65), transparent 55%);
+        }
+
+        .card {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-grid .card {
+            margin-bottom: 0;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(35px) rotateX(14deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            transform: translateZ(30px);
+        }
+
+        .profile-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            border: 4px solid var(--white);
+            box-shadow: 0 0 0 3px var(--blue-500), 0 14px 24px -6px rgba(21, 86, 192, .5);
+        }
+
+        .profile-info h3 {
+            font-size: 1.3rem;
+        }
+
+        .profile-info p {
+            color: var(--gray);
+            font-size: .88rem;
+            word-break: break-all;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .8rem;
+            margin-top: 1rem;
+            transform: translateZ(25px);
+        }
+
+        .stat-item,
+        .stat-card {
+            text-align: center;
+            padding: .85rem .5rem;
+            border-radius: 14px;
+            background: linear-gradient(160deg, #fff, var(--blue-100));
+            box-shadow: 0 5px 0 #c9defc, 0 10px 18px -8px rgba(21, 86, 192, .35);
+            transition: transform .2s;
+        }
+
+        .stat-item:hover,
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--blue-700);
+        }
+
+        .stat-label {
+            font-size: .7rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .badges-container {
+            margin-top: 1.5rem;
+            transform: translateZ(20px);
+        }
+
+        .badges-title {
+            font-size: .9rem;
+            color: var(--gray);
+            margin-bottom: .5rem;
+            font-weight: 500;
+        }
+
+        .badges-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .badge {
+            background: var(--white);
+            color: var(--blue-900);
+            padding: .3rem .8rem;
+            border-radius: 20px;
+            font-size: .75rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 3px 0 #c9defc, 0 6px 10px -4px rgba(21, 86, 192, .3);
+        }
+
+        .badge i {
+            margin-right: 6px;
+            color: var(--blue-500);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            transform: translateZ(25px);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--blue-900);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ---------- 3D buttons ---------- */
+        .btn {
+            padding: .55rem 1.1rem;
+            border-radius: 12px;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform .12s, box-shadow .12s, filter .2s;
+        }
+
+        .btn-primary {
+            color: var(--white);
+            background: linear-gradient(180deg, #4b98ff, var(--blue-700));
+            box-shadow: 0 5px 0 #0e3f8f, 0 12px 20px -6px rgba(21, 86, 192, .5);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0e3f8f, 0 4px 8px -2px rgba(21, 86, 192, .5);
+        }
+
+        .btn-outline {
+            color: var(--blue-700);
+            background: var(--white);
+            box-shadow: 0 4px 0 #c9defc, 0 8px 14px -6px rgba(21, 86, 192, .3);
+        }
+
+        .btn-outline:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #c9defc;
+        }
+
+        /* ---------- Table ---------- */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+
+        th,
+        td {
+            padding: .85rem 1rem;
+            text-align: left;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--blue-700);
+            text-transform: uppercase;
+            font-size: .72rem;
+            letter-spacing: .6px;
+            cursor: pointer;
+            transition: color .2s;
+            white-space: nowrap;
+        }
+
+        th:hover {
+            color: var(--blue-500);
+        }
+
+        tbody tr {
+            background: var(--white);
+            box-shadow: 0 3px 8px -4px rgba(21, 86, 192, .25);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        tbody tr:hover {
+            transform: translateY(-2px) scale(1.005);
+            box-shadow: 0 10px 18px -8px rgba(21, 86, 192, .4);
+        }
+
+        tbody td:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+
+        tbody td:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            margin-top: 1rem;
+        }
+
+        .no-data {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1rem;
+            color: var(--white);
+            text-align: center;
+            background: linear-gradient(120deg, var(--blue-700), var(--blue-300));
+        }
+
+        .no-data img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .55;
+        }
+
+        .no-data::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 28, 69, .55);
+        }
+
+        .no-data>*:not(img) {
+            position: relative;
+            z-index: 2;
+        }
+
+        .no-data i {
+            font-size: 2rem;
+            margin-bottom: .8rem;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* ---------- Photo gallery ---------- */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: .5rem;
+        }
+
+        .photo-tile {
+            position: relative;
+            overflow: hidden;
+            height: 170px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-300));
+            box-shadow: 0 16px 28px -14px rgba(21, 86, 192, .55);
+            transition: transform .35s, box-shadow .35s;
+        }
+
+        .photo-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .6s;
+        }
+
+        .photo-tile:hover {
+            transform: translateY(-6px) rotateX(4deg);
+            box-shadow: 0 26px 36px -16px rgba(21, 86, 192, .65);
+        }
+
+        .photo-tile:hover img {
+            transform: scale(1.12);
+        }
+
+        .photo-tile span {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: .7rem 1rem;
+            color: var(--white);
+            font-weight: 600;
+            font-size: .9rem;
+            background: linear-gradient(0deg, rgba(7, 28, 69, .85), transparent);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.1rem;
+            margin: 1.5rem 0 5rem;
+        }
+
+        .action-buttons .btn {
+            padding: .85rem 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .span-4,
+            .span-8 {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 900px) {
+
+            .two-col,
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cube {
+                display: none;
+            }
+
+            .hero {
+                height: 200px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- decorative 3D background -->
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="scene" aria-hidden="true">
+        {% for n in range(1, 4) %}
+        <div class="cube c{{ n }}"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        {% endfor %}
+    </div>
+
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-3d"><i class="fas fa-heartbeat"></i></div>
+                <h3>PhysioTrack</h3>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="{{ url_for('profile') }}" class="nav-link active"><i
+                            class="fas fa-user"></i> Profile</a></li>
+                <li class="nav-item"><a href="{{ url_for('select_exercise') }}" class="nav-link"><i
+                            class="fas fa-dumbbell"></i> Start Workout</a></li>
+                <li class="nav-item"><a href="{{ url_for('manual_log') }}" class="nav-link"><i
+                            class="fas fa-plus-circle"></i> Log Workout</a></li>
+                <li class="nav-item"><a href="{{ url_for('progress') }}" class="nav-link"><i
+                            class="fas fa-chart-line"></i> Progress</a></li>
+                <li class="nav-item"><a href="{{ url_for('measurements') }}" class="nav-link"><i
+                            class="fas fa-ruler"></i> Measurements</a></li>
+                <li class="nav-item"><a href="{{ url_for('reminders') }}" class="nav-link"><i class="fas fa-bell"></i>
+                        Reminders</a></li>
+                <li class="nav-item"><a href="{{ url_for('leaderboard') }}" class="nav-link"><i
+                            class="fas fa-trophy"></i> Leaderboard</a></li>
+                <li class="nav-item"><a href="{{ url_for('recommendations') }}" class="nav-link"><i
+                            class="fas fa-lightbulb"></i> Recommendations</a></li>
+                {% if user.is_admin %}
+                <li class="nav-item"><a href="{{ url_for('admin') }}" class="nav-link"><i class="fas fa-cog"></i>
+                        Admin</a></li>
+                <li class="nav-item"><a href="{{ url_for('admin_tests') }}" class="nav-link"><i class="fas fa-vial"></i>
+                        Diagnostics</a></li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="javascript:void(0)" onclick="toggleChatbot()" class="nav-link"
+                        style="font-weight: 600; background: rgba(255,255,255,.14);">
+                        <i class="fas fa-robot"></i> AI Physio Expert
+                    </a>
+                </li>
+                <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link"><i
+                            class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="user-profile">
+                    <img src="https://i.pravatar.cc/80?u={{ user.username|urlencode }}" alt="User Avatar">
+                    <span>{{ user.username }}</span>
+                </div>
+            </div>
+
+            <!-- Hero with photo -->
+            <section class="hero tilt">
+                <img class="hero-photo" alt="" onerror="this.style.display='none'"
+                    src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=70">
+                <div class="hero-text">
+                    <h2>Welcome back, {{ user.username }}!</h2>
+                    <p>Every rep counts. Let's make today's workout your best one yet.</p>
+                    <a href="{{ url_for('select_exercise') }}" class="hero-cta"><i class="fas fa-play"></i> Start
+                        Workout</a>
+                </div>
+            </section>
+
+            <div class="profile-grid">
+                <div class="profile-card span-4 tilt">
+                    <div class="profile-header">
+                        <img src="https://i.pravatar.cc/160?u={{ user.username|urlencode }}" alt="User Avatar"
+                            class="profile-avatar">
+                        <div class="profile-info">
+                            <h3>{{ user.username }}</h3>
+                            <p>{{ user.email }}</p>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ user.age }}</div>
+                            <div class="stat-label">Age</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ user.height }} cm</div>
+                            <div class="stat-label">Height</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ user.weight }} kg</div>
+                            <div class="stat-label">Weight</div>
+                        </div>
+                    </div>
+
+                    <div class="badges-container">
+                        <div class="badges-title">Achievements</div>
+                        <div class="badges-list">
+                            {% if user.badges %}
+                            {% for badge in user.badges %}
+                            <div class="badge"><i class="fas fa-medal"></i> {{ badge }}</div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="badge"><i class="fas fa-info-circle"></i> No badges yet</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card span-8 tilt">
+                    <div class="card-header">
+                        <h2 class="card-title">Workout Statistics</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-outline"><i class="fas fa-calendar"></i> Filter</button>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; transform: translateZ(25px);">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ sessions|length }}</div>
+                            <div class="stat-label">Total Sessions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">
+                                {% if sessions %}
+                                {{ (sessions|sum(attribute='total_time') / 60)|round(1) }} mins
+                                {% else %}
+                                0
+                                {% endif %}
+                            </div>
+                            <div class="stat-label">Total Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">
+                                {% if sessions %}
+                                {{ sessions|sum(attribute='count') }}
+                                {% else %}
+                                0
+                                {% endif %}
+                            </div>
+                            <div class="stat-label">Total Reps</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="sessionCountChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card tilt">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Workouts</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> New Workout</button>
+                    </div>
+                </div>
+
+                {% if sessions %}
+                <div class="table-responsive">
+                    <table id="sessionTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0)">Date <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(1)">Exercise <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(2)">Reps <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(3)">Time (s) <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(4)">Avg Speed <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable(5)">Calories <i class="fas fa-sort"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.date }}</td>
+                                <td>{{ session.exercise }}</td>
+                                <td>{{ session.count }}</td>
+                                <td>{{ session.total_time|round(2) }}</td>
+                                <td>{{ session.average_speed|round(2) }}</td>
+                                <td>{{ session.calories|round(2) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="no-data">
+                    <img alt="" onerror="this.style.display='none'"
+                        src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=70">
+                    <i class="fas fa-dumbbell"></i>
+                    <p>No workout sessions recorded yet</p>
+                    <a href="{{ url_for('select_exercise') }}" class="btn btn-primary" style="margin-top: 1rem;">
+                        <i class="fas fa-plus"></i> Start Your First Workout
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="two-col">
+                <div class="card tilt">
+                    <div class="card-header">
+                        <h2 class="card-title">Performance Over Time</h2>
+                    </div>
+                    <div class="chart-container"><canvas id="totalTimeChart"></canvas></div>
+                </div>
+                <div class="card tilt">
+                    <div class="card-header">
+                        <h2 class="card-title">Average Speed</h2>
+                    </div>
+                    <div class="chart-container"><canvas id="averageSpeedChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Photo gallery -->
+            <div class="card tilt">
+                <div class="card-header">
+                    <h2 class="card-title">Train Smarter</h2>
+                </div>
+                <div class="gallery">
+                    <div class="photo-tile">
+                        <img alt="Strength training" loading="lazy" onerror="this.style.display='none'"
+                            src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=70">
+                        <span>Strength</span>
+                    </div>
+                    <div class="photo-tile">
+                        <img alt="Physio workout" loading="lazy" onerror="this.style.display='none'"
+                            src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=70">
+                        <span>Cardio &amp; Mobility</span>
+                    </div>
+                    <div class="photo-tile">
+                        <img alt="Gym training" loading="lazy" onerror="this.style.display='none'"
+                            src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=800&q=70">
+                        <span>Consistency</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('edit_profile') }}" class="btn btn-primary"><i class="fas fa-user-edit"></i> Edit
+                    Profile</a>
+                <a href="{{ url_for('manual_log') }}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Log
+                    Workout</a>
+                <a href="{{ url_for('export_sessions') }}" class="btn btn-primary"><i class="fas fa-file-export"></i>
+                    Export Data</a>
+                <a href="{{ url_for('leaderboard') }}" class="btn btn-primary"><i class="fas fa-trophy"></i>
+                    Leaderboard</a>
+                <a href="{{ url_for('select_exercise') }}" class="btn btn-primary"><i class="fas fa-play"></i> Start
+                    Workout</a>
+                <a href="{{ url_for('recommendations') }}" class="btn btn-primary"><i class="fas fa-lightbulb"></i>
+                    Recommendations</a>
+                <a href="javascript:void(0)" onclick="toggleChatbot()" class="btn btn-primary"><i
+                        class="fas fa-robot"></i> Ask PhysioBot AI</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ---------- 3D tilt on cards ----------
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('.tilt').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    const r = el.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width;
+                    const py = (e.clientY - r.top) / r.height;
+                    el.style.transform = 'rotateY(' + ((px - .5) * 7) + 'deg) rotateX(' + (-(py - .5) * 7) + 'deg)';
+                    el.style.setProperty('--mx', (px * 100) + '%');
+                    el.style.setProperty('--my', (py * 100) + '%');
+                });
+                el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+            });
+        })();
+
+        // ---------- Chart data ----------
+        const sessionDates = {{ session_dates | tojson }};
+        const sessionCounts = {{ session_counts | tojson }};
+        const sessionTotalTimes = {{ session_total_times | tojson }};
+        const sessionAverageSpeeds = {{ session_average_speeds | tojson }};
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { borderDash: [3, 3], color: 'rgba(47,128,237,.12)' } }
+            }
+        };
+
+        new Chart(document.getElementById('sessionCountChart'), {
+            type: 'line',
+            data: {
+                labels: sessionDates,
+                datasets: [{
+                    label: 'Session Count',
+                    data: sessionCounts,
+                    borderColor: '#2f80ed',
+                    backgroundColor: 'rgba(47, 128, 237, 0.15)',
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    pointBackgroundColor: '#fff', pointBorderColor: '#2f80ed',
+                    pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 7
+                }]
+            },
+            options: chartOptions
+        });
+
+        new Chart(document.getElementById('totalTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: sessionDates,
+                datasets: [{
+                    label: 'Total Time (seconds)',
+                    data: sessionTotalTimes,
+                    backgroundColor: 'rgba(127, 181, 255, 0.8)',
+                    borderColor: '#2f80ed',
+                    borderWidth: 1, borderRadius: 8
+                }]
+            },
+            options: chartOptions
+        });
+
+        new Chart(document.getElementById('averageSpeedChart'), {
+            type: 'line',
+            data: {
+                labels: sessionDates,
+                datasets: [{
+                    label: 'Average Speed (seconds/rep)',
+                    data: sessionAverageSpeeds,
+                    borderColor: '#0a2a66',
+                    backgroundColor: 'rgba(10, 42, 102, 0.1)',
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    pointBackgroundColor: '#fff', pointBorderColor: '#0a2a66',
+                    pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 7
+                }]
+            },
+            options: chartOptions
+        });
+
+        // ---------- Table sorting ----------
+        function sortTable(n) {
+            let table = document.getElementById("sessionTable");
+            let switching = true, rows, i, shouldSwitch, dir = "asc", switchcount = 0;
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    let x = rows[i].getElementsByTagName("TD")[n];
+                    let y = rows[i + 1].getElementsByTagName("TD")[n];
+                    let xVal = isNaN(x.innerHTML) ? x.innerHTML.toLowerCase() : parseFloat(x.innerHTML);
+                    let yVal = isNaN(y.innerHTML) ? y.innerHTML.toLowerCase() : parseFloat(y.innerHTML);
+                    if (dir == "asc") {
+                        if (xVal > yVal) { shouldSwitch = true; break; }
+                    } else if (dir == "desc") {
+                        if (xVal < yVal) { shouldSwitch = true; break; }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    </script>
+
+    <!-- =========================================================================
+         PhysioBot AI Physio Expert Chatbot Widget (Powered by OpenAI & Dataset)
+         ========================================================================= -->
+    <style>
+        .fitbot-trigger-btn {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 66px;
+            height: 66px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #5aa2ff, var(--blue-700));
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, .6);
+            box-shadow: 0 6px 0 #0e3f8f, 0 16px 28px rgba(21, 86, 192, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            cursor: pointer;
+            z-index: 9998;
+            transition: transform .15s, box-shadow .15s;
+            animation: botPulseRing 2.4s infinite;
+        }
+
+        .fitbot-trigger-btn:hover {
+            transform: translateY(-3px) scale(1.06);
+        }
+
+        .fitbot-trigger-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #0e3f8f, 0 6px 12px rgba(21, 86, 192, .5);
+        }
+
+        @keyframes botPulseRing {
+            0% {
+                outline: 0 solid rgba(47, 128, 237, .5);
+            }
+
+            70% {
+                outline: 16px solid rgba(47, 128, 237, 0);
+            }
+
+            100% {
+                outline: 0 solid rgba(47, 128, 237, 0);
+            }
+        }
+
+        .fitbot-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #fff;
+            color: var(--blue-700);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 10px;
+            border: 2px solid var(--blue-500);
+            letter-spacing: .5px;
+        }
+
+        .fitbot-tooltip {
+            position: absolute;
+            right: 78px;
+            background: var(--blue-950);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all .25s ease;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .2);
+        }
+
+        .fitbot-tooltip::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px 0 6px 6px;
+            border-style: solid;
+            border-color: transparent transparent transparent var(--blue-950);
+        }
+
+        .fitbot-trigger-btn:hover .fitbot-tooltip {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .fitbot-window {
+            position: fixed;
+            bottom: 108px;
+            right: 28px;
+            width: 400px;
+            max-width: calc(100vw - 36px);
+            height: 600px;
+            max-height: calc(100vh - 130px);
+            background: rgba(255, 255, 255, .96);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(47, 128, 237, .25);
+            border-radius: 22px;
+            box-shadow: 0 30px 70px rgba(10, 42, 102, .3), 0 8px 24px rgba(47, 128, 237, .2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(24px) scale(.96) rotateX(8deg);
+            transform-origin: bottom right;
+            transition: all .4s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .fitbot-window.active {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+
+        .fitbot-header {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
+            color: #fff;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .fitbot-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fitbot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .2);
+            border: 1px solid rgba(255, 255, 255, .4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .fitbot-online-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4cc9f0;
+            border: 2px solid var(--blue-900);
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+        }
+
+        .fitbot-title-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fitbot-title-box span {
+            font-size: 11px;
+            opacity: .85;
+            font-weight: 400;
+        }
+
+        .fitbot-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fitbot-header-btn {
+            background: rgba(255, 255, 255, .15);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all .2s;
+        }
+
+        .fitbot-header-btn:hover {
+            background: rgba(255, 255, 255, .3);
+            transform: scale(1.05);
+        }
+
+        .fitbot-settings-panel {
+            display: none;
+            background: var(--blue-100);
+            border-bottom: 1px solid #cfe0fa;
+            padding: 14px 18px;
+            font-size: 12px;
+            animation: slideDownPanel .25s ease;
+        }
+
+        @keyframes slideDownPanel {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fitbot-settings-panel.active {
+            display: block;
+        }
+
+        .fitbot-settings-panel label {
+            display: block;
+            font-weight: 600;
+            color: var(--blue-900);
+            margin-bottom: 6px;
+        }
+
+        .fitbot-key-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .fitbot-key-input {
+            flex-grow: 1;
+            padding: 8px 12px;
+            border: 1px solid #b9d2f5;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .fitbot-key-input:focus {
+            border-color: var(--blue-500);
+        }
+
+        .fitbot-btn-save-key {
+            background: var(--blue-500);
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .fitbot-btn-save-key:hover {
+            background: var(--blue-700);
+        }
+
+        .fitbot-key-hint {
+            color: var(--gray);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .fitbot-chips-container {
+            padding: 10px 16px;
+            background: #f4f9ff;
+            border-bottom: 1px solid #e1ecfb;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+
+        .fitbot-chip {
+            background: #fff;
+            border: 1px solid rgba(47, 128, 237, .3);
+            color: var(--blue-700);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 3px 0 #d3e4ff;
+        }
+
+        .fitbot-chip:hover {
+            background: var(--blue-500);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .fitbot-messages {
+            flex-grow: 1;
+            padding: 18px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: #fafcff;
+        }
+
+        .fitbot-msg {
+            display: flex;
+            gap: 10px;
+            max-width: 88%;
+            animation: msgFadeIn .3s ease forwards;
+        }
+
+        @keyframes msgFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fitbot-msg.bot {
+            align-self: flex-start;
+        }
+
+        .fitbot-msg.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .fitbot-msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .fitbot-msg.bot .fitbot-msg-avatar {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
+            color: #fff;
+        }
+
+        .fitbot-msg.user .fitbot-msg-avatar {
+            background: #dbe9ff;
+            color: var(--blue-700);
+        }
+
+        .fitbot-msg-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .fitbot-msg.bot .fitbot-msg-bubble {
+            background: #fff;
+            color: var(--blue-900);
+            border: 1px solid #dbe9ff;
+            border-top-left-radius: 4px;
+            box-shadow: 0 4px 14px rgba(21, 86, 192, .08);
+        }
+
+        .fitbot-msg.user .fitbot-msg-bubble {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-700));
+            color: #fff;
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 14px rgba(47, 128, 237, .35);
+        }
+
+        .fitbot-source-pill {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(47, 128, 237, .12);
+            color: var(--blue-700);
+        }
+
+        .fitbot-source-pill.openai {
+            background: rgba(16, 185, 129, .12);
+            color: #059669;
+        }
+
+        .fitbot-typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+        }
+
+        .fitbot-typing-dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--blue-500);
+            opacity: .6;
+            animation: typingBounce 1.2s infinite ease-in-out;
+        }
+
+        .fitbot-typing-dots span:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        .fitbot-typing-dots span:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(.6);
+                opacity: .4;
+            }
+
+            40% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+        }
+
+        .fitbot-footer {
+            padding: 12px 16px;
+            background: #fff;
+            border-top: 1px solid #e1ecfb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fitbot-input {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border: 2px solid #d3e4ff;
+            border-radius: 14px;
+            font-size: 13px;
+            outline: none;
+            transition: all .2s;
+            background: #f6faff;
+        }
+
+        .fitbot-input:focus {
+            border-color: var(--blue-500);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(47, 128, 237, .15);
+        }
+
+        .fitbot-btn-send {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #4b98ff, var(--blue-700));
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0e3f8f, 0 8px 14px rgba(21, 86, 192, .35);
+            flex-shrink: 0;
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .fitbot-btn-send:hover {
+            transform: translateY(-2px);
+        }
+
+        .fitbot-btn-send:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #0e3f8f;
+        }
+
+        .fitbot-btn-send:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+
+    <!-- Trigger Button -->
+    <div class="fitbot-trigger-btn" id="fitbotTrigger" onclick="toggleChatbot()" title="PhysioBot AI Expert">
+        <i class="fas fa-robot"></i>
+        <span class="fitbot-badge">AI</span>
+        <div class="fitbot-tooltip">Ask PhysioBot AI Expert ✨</div>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="fitbot-window" id="fitbotWindow">
+        <div class="fitbot-header">
+            <div class="fitbot-header-left">
+                <div class="fitbot-avatar">
+                    <i class="fas fa-robot"></i>
+                    <span class="fitbot-online-dot"></span>
+                </div>
+                <div class="fitbot-title-box">
+                    <h3>PhysioBot AI Expert</h3>
+                    <span>OpenAI &amp; Physio Dataset</span>
+                </div>
+            </div>
+            <div class="fitbot-header-actions">
+                <button class="fitbot-header-btn" onclick="toggleSettingsPanel()" title="OpenAI API Settings"><i
+                        class="fas fa-key"></i></button>
+                <button class="fitbot-header-btn" onclick="toggleChatbot()" title="Close Chat"><i
+                        class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <div class="fitbot-settings-panel" id="fitbotSettingsPanel">
+            <label for="fitbotApiKeyInput"><i class="fas fa-key"></i> OpenAI API Key (Optional):</label>
+            <div class="fitbot-key-row">
+                <input type="password" id="fitbotApiKeyInput" class="fitbot-key-input" placeholder="sk-..."
+                    autocomplete="off">
+                <button class="fitbot-btn-save-key" onclick="saveApiKey()">Save</button>
+            </div>
+            <div class="fitbot-key-hint">
+                Uses OpenAI GPT-4o-mini with your API key credits. If left empty, PhysioBot automatically answers using the
+                local workout dataset!
+            </div>
+        </div>
+
+        <div class="fitbot-chips-container">
+            <div class="fitbot-chip" onclick="sendChipQuery('Analyze my recent workout sessions and stats')"><i
+                    class="fas fa-chart-line"></i> Analyze my stats</div>
+            <div class="fitbot-chip" onclick="sendChipQuery('How many total calories have I burned so far?')"><i
+                    class="fas fa-fire"></i> Total calories</div>
+            <div class="fitbot-chip" onclick="sendChipQuery('Recommend a workout routine for today')"><i
+                    class="fas fa-dumbbell"></i> Today's routine</div>
+            <div class="fitbot-chip" onclick="sendChipQuery('Tips to improve my squat form and avoid mistakes')"><i
+                    class="fas fa-bullseye"></i> Squat form tips</div>
+            <div class="fitbot-chip" onclick="sendChipQuery('What are my nutrition and protein targets?')"><i
+                    class="fas fa-apple-alt"></i> Nutrition targets</div>
+        </div>
+
+        <div class="fitbot-messages" id="fitbotMessages">
+            <div class="fitbot-msg bot">
+                <div class="fitbot-msg-avatar"><i class="fas fa-robot"></i></div>
+                <div class="fitbot-msg-bubble">
+                    👋 Hi <strong>{{ user.username }}</strong>! I am <strong>PhysioBot</strong>, your personal AI Physio
+                    Expert.<br><br>
+                    I have loaded your personal physio records (weight, workout sessions, reps, calories) along with
+                    our exercise dataset. How can I help you crush your goals today?
+                    <br><span class="fitbot-source-pill">Dataset &amp; OpenAI Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="fitbot-footer">
+            <input type="text" id="fitbotInput" class="fitbot-input"
+                placeholder="Ask about workouts, form, calories, diet..." onkeydown="handleInputKey(event)">
+            <button class="fitbot-btn-send" id="fitbotSendBtn" onclick="sendMessage()" title="Send Message"><i
+                    class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Chatbot Logic (unchanged) -->
+    <script>
+        let chatHistory = [];
+        let isWaitingResponse = false;
+
+        function toggleChatbot() {
+            const win = document.getElementById('fitbotWindow');
+            win.classList.toggle('active');
+            if (win.classList.contains('active')) {
+                document.getElementById('fitbotInput').focus();
+            }
+        }
+
+        function toggleSettingsPanel() {
+            const panel = document.getElementById('fitbotSettingsPanel');
+            panel.classList.toggle('active');
+        }
+
+        async function saveApiKey() {
+            const key = document.getElementById('fitbotApiKeyInput').value.trim();
+            try {
+                const resp = await fetch('/api/set_openai_key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: key })
+                });
+                const data = await resp.json();
+                alert(data.message || 'Settings updated!');
+                toggleSettingsPanel();
+            } catch (err) {
+                alert('Failed to save API key: ' + err.message);
+            }
+        }
+
+        function sendChipQuery(text) {
+            document.getElementById('fitbotInput').value = text;
+            sendMessage();
+        }
+
+        function handleInputKey(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            if (isWaitingResponse) return;
+            const input = document.getElementById('fitbotInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.value = '';
+            appendMessage('user', message);
+            chatHistory.push({ role: 'user', content: message });
+
+            isWaitingResponse = true;
+            document.getElementById('fitbotSendBtn').disabled = true;
+            const typingId = showTypingIndicator();
+
+            try {
+                const resp = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, history: chatHistory })
+                });
+
+                const data = await resp.json();
+                removeTypingIndicator(typingId);
+
+                if (data.success && data.reply) {
+                    appendMessage('bot', data.reply, data.model, data.source);
+                    chatHistory.push({ role: 'bot', content: data.reply });
+                } else {
+                    appendMessage('bot', "⚠️ " + (data.error || "Unable to get response from physio expert."), "Error", "error");
+                }
+            } catch (err) {
+                removeTypingIndicator(typingId);
+                appendMessage('bot', "⚠️ Connection error: " + err.message, "Network", "error");
+            } finally {
+                isWaitingResponse = false;
+                document.getElementById('fitbotSendBtn').disabled = false;
+                input.focus();
+            }
+        }
+
+        function appendMessage(sender, text, modelName, source) {
+            const container = document.getElementById('fitbotMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `fitbot-msg ${sender}`;
+
+            const formattedText = formatMarkdown(text);
+            let pillHtml = '';
+            if (sender === 'bot') {
+                const isAI = source === 'openai';
+                const label = isAI ? `✨ OpenAI (${modelName || 'gpt-4o-mini'})` : `📦 ${modelName || 'Physio Dataset'}`;
+                pillHtml = `<br><span class="fitbot-source-pill ${isAI ? 'openai' : ''}">${label}</span>`;
+            }
+
+            msgDiv.innerHTML = `
+                <div class="fitbot-msg-avatar"><i class="fas ${sender === 'bot' ? 'fa-robot' : 'fa-user'}"></i></div>
+                <div class="fitbot-msg-bubble">
+                    ${formattedText}
+                    ${pillHtml}
+                </div>
+            `;
+
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('fitbotMessages');
+            const id = 'typing_' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = 'fitbot-msg bot';
+            div.innerHTML = `
+                <div class="fitbot-msg-avatar"><i class="fas fa-robot"></i></div>
+                <div class="fitbot-msg-bubble">
+                    <div class="fitbot-typing-dots"><span></span><span></span><span></span></div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/^### (.*$)/gim, '<h4 style="margin: 8px 0 4px; font-weight:700;">$1</h4>');
+            html = html.replace(/^#### (.*$)/gim, '<h5 style="margin: 6px 0 3px; font-weight:600;">$1</h5>');
+            html = html.replace(/^[•\-\*] (.*$)/gim, '• $1<br>');
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --blue: #1769ff;
+            --navy: #102448;
+            --muted: #8290a8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--navy);
+            background: #edf4ff;
+        }
+
+        .scene {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 35px 18px 65px;
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse at 10% 10%, #d3e5ff, transparent 42%),
+                radial-gradient(ellipse at 90% 90%, #c2dcff, transparent 40%),
+                linear-gradient(135deg, #f8fbff, #e9f2ff, #ffffff);
+        }
+
+        .ambient {
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(8px);
+            animation: float 9s ease-in-out infinite;
+        }
+
+        .ambient.one {
+            width: 340px;
+            height: 340px;
+            top: -110px;
+            left: -100px;
+            background: #78adff30;
+        }
+
+        .ambient.two {
+            width: 400px;
+            height: 400px;
+            bottom: -140px;
+            right: -120px;
+            background: #1769ff24;
+            animation-delay: -4s;
+        }
+
+        .orb {
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            pointer-events: none;
+            background: linear-gradient(135deg, #ffffff, #b9d5ff);
+            box-shadow:
+                inset -9px -10px 20px #3676d51c,
+                14px 25px 45px #2b64b91c;
+            animation: float 7s ease-in-out infinite;
+        }
+
+        .orb.one {
+            width: 90px;
+            height: 90px;
+            top: 12%;
+            left: 12%;
+        }
+
+        .orb.two {
+            width: 62px;
+            height: 62px;
+            right: 12%;
+            bottom: 14%;
+            animation-delay: -3s;
+        }
+
+        .orb.three {
+            width: 27px;
+            height: 27px;
+            top: 24%;
+            right: 22%;
+            animation-delay: -5s;
+        }
+
+        /* 3D Registration Card */
+
+        .card {
+            width: min(100%, 570px);
+            padding: 32px 40px 27px;
+            position: relative;
+            border-radius: 27px;
+            border: 1px solid #ffffff;
+            background: #ffffffdf;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow:
+                0 2px 3px #194b8b08,
+                0 15px 35px #25599b10,
+                0 40px 85px #25599b18,
+                inset 0 1px 1px #ffffff;
+            transform-style: preserve-3d;
+            transition: transform .18s ease, box-shadow .3s ease;
+            animation: appear .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            top: -120px;
+            right: -80px;
+            border-radius: 50%;
+            background: #4b8cff14;
+            pointer-events: none;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 26px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 39px;
+            height: 39px;
+            color: white;
+            font-size: 27px;
+            font-weight: 500;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #65a8ff, #0750e5);
+            box-shadow:
+                0 5px 0 #1647b7,
+                0 9px 20px #1769ff40,
+                inset 0 1px 1px #ffffff90;
+        }
+
+        .brand span span {
+            color: var(--blue);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #6680a5;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: #328dff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px #328dff18;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(32px, 5vw, 40px);
+            line-height: 1.14;
+            letter-spacing: -1.7px;
+            font-weight: 800;
+        }
+
+        h1 span {
+            color: var(--blue);
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            margin-bottom: 24px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .error {
+            padding: 11px 13px;
+            margin-bottom: 17px;
+            border-radius: 10px;
+            background: #fff1f3;
+            border: 1px solid #ffd4dc;
+            color: #c22d47;
+            font-size: 12px;
+        }
+
+        /* Form */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 13px;
+        }
+
+        .field {
+            min-width: 0;
+            animation: fieldAppear .5s ease both;
+        }
+
+        .field:nth-child(2) {
+            animation-delay: .04s;
+        }
+
+        .field:nth-child(3) {
+            animation-delay: .08s;
+        }
+
+        .field:nth-child(4) {
+            animation-delay: .12s;
+        }
+
+        .field:nth-child(5) {
+            animation-delay: .16s;
+        }
+
+        .field:nth-child(6) {
+            animation-delay: .20s;
+        }
+
+        .field:nth-child(7) {
+            animation-delay: .24s;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #334a6b;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        label span {
+            color: #91a0b6;
+            font-weight: 500;
+        }
+
+        .input-box {
+            height: 46px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 0 12px;
+            border: 1px solid #e4ebf5;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #fff, #f9fbff);
+            box-shadow: inset 0 1px 2px #244b8206;
+            transition: .25s ease;
+        }
+
+        .input-box:focus-within {
+            border-color: #78aaff;
+            background: #fff;
+            transform: translateY(-1px);
+            box-shadow:
+                0 0 0 4px #2875ff12,
+                0 6px 16px #2875ff0d;
+        }
+
+        .input-icon {
+            flex: 0 0 16px;
+            width: 16px;
+            text-align: center;
+            color: #5b91ef;
+            font-size: 16px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: #1d3455;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        input::placeholder {
+            color: #a6b2c4;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+        .toggle {
+            flex: 0 0 27px;
+            width: 27px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #8294ae;
+            cursor: pointer;
+        }
+
+        .toggle:hover {
+            background: #eff5ff;
+            color: var(--blue);
+        }
+
+        /* 3D button */
+
+        .submit-btn {
+            width: 100%;
+            height: 49px;
+            margin-top: 24px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 0;
+            border-radius: 12px;
+            color: white;
+            background: linear-gradient(110deg, #347fff, #0751e9 75%, #0647cf);
+            box-shadow:
+                0 5px 0 #1045bd,
+                0 10px 20px #145ceb38,
+                inset 0 1px 1px #ffffff60;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .submit-btn:hover {
+            filter: brightness(1.06);
+            transform: translateY(-2px);
+            box-shadow:
+                0 7px 0 #1045bd,
+                0 15px 25px #145ceb45,
+                inset 0 1px 1px #ffffff70;
+        }
+
+        .submit-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #1045bd;
+        }
+
+        .arrow {
+            font-size: 18px;
+            transition: transform .2s ease;
+        }
+
+        .submit-btn:hover .arrow {
+            transform: translate(3px, -2px);
+        }
+
+        .note {
+            margin-top: 16px;
+            text-align: center;
+            color: #8999b0;
+            font-size: 10px;
+        }
+
+        .note span {
+            color: #328dff;
+        }
+
+        .footer {
+            margin-top: 23px;
+            padding-top: 19px;
+            border-top: 1px solid #edf1f7;
+            text-align: center;
+            color: #8997ac;
+            font-size: 11px;
+        }
+
+        .footer a {
+            margin-left: 4px;
+            color: #1769ff;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #0645c6;
+        }
+
+        .caption {
+            position: absolute;
+            bottom: 22px;
+            color: #7d95b8;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* Animations */
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: perspective(1200px) translateY(25px) rotateX(5deg) scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: perspective(1200px) translateY(0) rotateX(0) scale(1);
+            }
+        }
+
+        @keyframes fieldAppear {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0);
+            }
+
+            50% {
+                transform: translateY(-22px) rotate(8deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 4px #328dff18;
+            }
+
+            50% {
+                box-shadow: 0 0 0 7px #328dff08;
+            }
+        }
+
+        /* Mobile responsive */
+
+        @media (max-width: 520px) {
+            .scene {
+                padding: 24px 13px 55px;
+            }
+
+            .card {
+                padding: 26px 21px 23px;
+                border-radius: 22px;
+            }
+
+            .form-grid {
+                gap: 14px 10px;
+            }
+
+            .input-box {
+                padding: 0 9px;
+                gap: 6px;
+            }
+
+            .input-box input,
+            .input-box select {
+                font-size: 10px;
+            }
+
+            .brand {
+                margin-bottom: 23px;
+            }
+
+            .orb.one {
+                left: -25px;
+            }
+
+            .orb.two {
+                right: -15px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scene">
+
+        <div class="ambient one"></div>
+        <div class="ambient two"></div>
+        <div class="orb one"></div>
+        <div class="orb two"></div>
+        <div class="orb three"></div>
+
+        <main class="card" id="registerCard">
+
+
+            <div class="heading">
+                <div class="eyebrow">
+                    <span class="dot"></span>
+                    YOUR HEALTH JOURNEY STARTS HERE
+                </div>
+
+                <h1>Create your<br><span>account.</span></h1>
+                <p class="subtitle">
+                    Join us to manage your health, your way.
+                </p>
+            </div>
+
+            {% if error %}
+            <div class="error" role="alert">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('register') }}" autocomplete="on">
+
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <div class="input-box">
+                            <span class="input-icon">◎</span>
+                            <input type="text" id="username" name="username" placeholder="Choose a username"
+                                autocomplete="username" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email address</label>
+                        <div class="input-box">
+                            <span class="input-icon">✉</span>
+                            <input type="email" id="email" name="email" placeholder="you@example.com"
+                                autocomplete="email" required>
+                        </div>
+                    </div>
+
+                    <div class="field full">
+                        <label for="password">Password</label>
+                        <div class="input-box">
+                            <span class="input-icon">⌑</span>
+                            <input type="password" id="password" name="password" placeholder="Create a strong password"
+                                autocomplete="new-password" required>
+                            <button type="button" class="toggle" id="passwordToggle" aria-label="Show password"
+                                aria-pressed="false">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="age">Age</label>
+                        <div class="input-box">
+                            <span class="input-icon">◷</span>
+                            <input type="number" id="age" name="age" placeholder="Years" min="1" max="120" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="blood_group">Blood group</label>
+                        <div class="input-box">
+                            <span class="input-icon">✚</span>
+                            <select id="blood_group" name="blood_group" required>
+                                <option value="" disabled selected>
+                                    Select group
+                                </option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="Unknown">Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="height">Height <span>(cm)</span></label>
+                        <div class="input-box">
+                            <span class="input-icon">↕</span>
+                            <input type="number" id="height" name="height" placeholder="e.g. 170" min="1" step="any"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="weight">Weight <span>(kg)</span></label>
+                        <div class="input-box">
+                            <span class="input-icon">⚖</span>
+                            <input type="number" id="weight" name="weight" placeholder="e.g. 65" min="1" step="any"
+                                required>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Create my account</span>
+                    <span class="arrow">↗</span>
+                </button>
+
+                <p class="note">
+                    <span>✦</span> Your journey to better health starts today
+                </p>
+            </form>
+
+            <div class="footer">
+                Already have an account?
+                <a href="{{ url_for('login') }}">Sign in →</a>
+            </div>
+
+        </main>
+
+        <div class="caption">SMARTER HEALTH · BETTER LIVING</div>
+    </div>
+
+    <script>
+        const card = document.getElementById("registerCard");
+        const scene = document.querySelector(".scene");
+        const password = document.getElementById("password");
+        const toggle = document.getElementById("passwordToggle");
+
+        // Show / hide password
+        toggle.addEventListener("click", () => {
+            const visible = password.type === "password";
+
+            password.type = visible ? "text" : "password";
+            toggle.setAttribute("aria-pressed", String(visible));
+            toggle.setAttribute(
+                "aria-label",
+                visible ? "Hide password" : "Show password"
+            );
+        });
+
+        // Interactive 3D tilt
+        const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const pointerQuery = window.matchMedia(
+            "(hover: hover) and (pointer: fine)"
+        );
+
+        if (pointerQuery.matches && !motionQuery.matches) {
+            scene.addEventListener("pointermove", (event) => {
+                const rect = card.getBoundingClientRect();
+
+                const x = (event.clientX - rect.left) / rect.width;
+                const y = (event.clientY - rect.top) / rect.height;
+
+                const rotateX = (0.5 - y) * 4;
+                const rotateY = (x - 0.5) * 4;
+
+                card.style.transform =
+                    `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+
+            scene.addEventListener("pointerleave", () => {
+                card.style.transform =
+                    "perspective(1200px) rotateX(0deg) rotateY(0deg)";
+            });
+        }
+    </script>
+</body>
+
+</html>

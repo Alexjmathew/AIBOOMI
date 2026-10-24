@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --blue-950: #071c45;
+            --blue-900: #0a2a66;
+            --blue-700: #1556c0;
+            --blue-500: #2f80ed;
+            --blue-300: #7fb5ff;
+            --blue-100: #e6f1ff;
+            --white: #ffffff;
+            --gray: #5b78a8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--blue-900);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #eaf3ff, #ffffff, #d6e8ff, #ffffff);
+            background-size: 400% 400%;
+            animation: bgShift 18s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* ---------- Floating 3D background ---------- */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+            animation: float 11s ease-in-out infinite;
+        }
+
+        .orb.o1 {
+            width: 340px;
+            height: 340px;
+            background: rgba(47, 128, 237, .25);
+            top: -90px;
+            left: 200px;
+        }
+
+        .orb.o2 {
+            width: 400px;
+            height: 400px;
+            background: rgba(127, 181, 255, .35);
+            bottom: -140px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(30px) scale(1.08);
+            }
+        }
+
+        .scene {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            perspective: 1200px;
+        }
+
+        .cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: spin 20s linear infinite, bob 7s ease-in-out infinite;
+            opacity: .7;
+        }
+
+        .cube span {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(47, 128, 237, .45);
+            background: linear-gradient(135deg, rgba(127, 181, 255, .3), rgba(255, 255, 255, .5));
+        }
+
+        .cube span:nth-child(1) {
+            transform: translateZ(30px);
+        }
+
+        .cube span:nth-child(2) {
+            transform: rotateY(180deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(3) {
+            transform: rotateY(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(5) {
+            transform: rotateX(90deg) translateZ(30px);
+        }
+
+        .cube span:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(30px);
+        }
+
+        .cube.c1 {
+            top: 14%;
+            right: 6%;
+        }
+
+        .cube.c2 {
+            top: 62%;
+            right: 3%;
+            width: 42px;
+            height: 42px;
+            animation-duration: 15s, 5s;
+        }
+
+        .cube.c3 {
+            top: 78%;
+            left: 280px;
+            width: 50px;
+            height: 50px;
+            animation-duration: 25s, 8s;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            to {
+                transform: rotateX(360deg) rotateY(360deg);
+            }
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                margin-top: 0;
+            }
+
+            50% {
+                margin-top: -26px;
+            }
+        }
+
+        /* ---------- Layout ---------- */
+        .layout {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: linear-gradient(170deg, var(--blue-500), var(--blue-900));
+            color: #fff;
+            padding: 1.5rem 1rem;
+            box-shadow: 8px 0 30px -10px rgba(21, 86, 192, .5);
+        }
+
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, .25), transparent 50%);
+        }
+
+        .sidebar>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+        }
+
+        .logo-3d {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #ffffff, #cfe3ff);
+            color: var(--blue-700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 5px 0 rgba(10, 42, 102, .45), 0 10px 18px rgba(0, 0, 0, .25);
+            animation: logoSway 5s ease-in-out infinite;
+        }
+
+        @keyframes logoSway {
+
+            0%,
+            100% {
+                transform: rotateX(8deg) rotateY(-10deg);
+            }
+
+            50% {
+                transform: rotateX(-6deg) rotateY(12deg);
+            }
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: .7rem 1rem;
+            border-radius: 12px;
+            margin-bottom: .35rem;
+            color: rgba(255, 255, 255, .85);
+            text-decoration: none;
+            font-size: .92rem;
+            transition: transform .25s, background .25s, box-shadow .25s;
+        }
+
+        .nav a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: rgba(255, 255, 255, .18);
+            color: #fff;
+            transform: translateX(6px);
+            box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .3);
+        }
+
+        /* ---------- Main ---------- */
+        .main {
+            padding: 2rem;
+        }
+
+        /* ---------- Hero with photo ---------- */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+            border-radius: 22px;
+            margin-bottom: 1.8rem;
+            background: linear-gradient(120deg, var(--blue-700), var(--blue-300));
+            box-shadow: 0 30px 50px -20px rgba(21, 86, 192, .5);
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .hero img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.08);
+            animation: kenburns 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes kenburns {
+            to {
+                transform: scale(1.2) translate(-2%, -2%);
+            }
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(7, 28, 69, .88), rgba(21, 86, 192, .45) 55%, rgba(255, 255, 255, 0));
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+            padding: 1.6rem 2rem;
+            color: #fff;
+        }
+
+        .hero-text h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+        }
+
+        .hero-text p {
+            opacity: .9;
+        }
+
+        /* ---------- 3D cards ---------- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+            perspective: 1400px;
+        }
+
+        .stat-card,
+        .streak-card,
+        .card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(230, 241, 255, .8));
+            border: 1px solid rgba(255, 255, 255, .9);
+            border-radius: 20px;
+            box-shadow: 0 1px 0 #fff inset, 0 24px 40px -18px rgba(21, 86, 192, .4), 0 8px 16px -8px rgba(21, 86, 192, .2);
+            transform-style: preserve-3d;
+            transition: transform .15s ease-out, box-shadow .3s;
+            will-change: transform;
+            animation: rise .8s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .stat-card::before,
+        .streak-card::before,
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, .65), transparent 55%);
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(35px) rotateX(14deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .stats-row .stat-card:nth-child(2) {
+            animation-delay: .08s;
+        }
+
+        .stats-row .stat-card:nth-child(3) {
+            animation-delay: .16s;
+        }
+
+        .stats-row .stat-card:nth-child(4) {
+            animation-delay: .24s;
+        }
+
+        .stat-card {
+            padding: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            background: linear-gradient(160deg, #5aa2ff, var(--blue-700));
+            box-shadow: 0 5px 0 #0e3f8f, 0 10px 16px -6px rgba(21, 86, 192, .5);
+            transform: translateZ(35px);
+        }
+
+        .stat-icon.b2 {
+            background: linear-gradient(160deg, #7fb5ff, var(--blue-500));
+            box-shadow: 0 5px 0 #1a63c9, 0 10px 16px -6px rgba(21, 86, 192, .5);
+        }
+
+        .stat-icon.b3 {
+            background: linear-gradient(160deg, #4b98ff, var(--blue-900));
+            box-shadow: 0 5px 0 #05163a, 0 10px 16px -6px rgba(21, 86, 192, .5);
+        }
+
+        .stat-icon.b4 {
+            background: linear-gradient(160deg, #a9cdff, var(--blue-500));
+            box-shadow: 0 5px 0 #2468c4, 0 10px 16px -6px rgba(21, 86, 192, .5);
+        }
+
+        .stat-val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--blue-700);
+            transform: translateZ(25px);
+        }
+
+        .stat-lbl {
+            font-size: .74rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        /* ---------- Streaks ---------- */
+        .streak-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+            perspective: 1400px;
+        }
+
+        .streak-card {
+            padding: 1.6rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .streak-card::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--blue-500), var(--blue-300));
+        }
+
+        .streak-card.longest::after {
+            background: linear-gradient(90deg, var(--blue-900), var(--blue-500));
+        }
+
+        .streak-num {
+            font-size: 3.6rem;
+            font-weight: 700;
+            line-height: 1;
+            transform: translateZ(45px);
+            background: linear-gradient(180deg, var(--blue-500), var(--blue-900));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 6px 6px rgba(21, 86, 192, .25));
+        }
+
+        .streak-label {
+            font-size: .88rem;
+            color: var(--gray);
+            margin-top: 6px;
+            font-weight: 500;
+            transform: translateZ(20px);
+        }
+
+        /* ---------- Chart cards ---------- */
+        .card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transform: translateZ(25px);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 280px;
+        }
+
+        /* ---------- Empty state with photo ---------- */
+        .empty {
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 3.5rem 1rem;
+            color: #fff;
+            background: linear-gradient(120deg, var(--blue-700), var(--blue-300));
+        }
+
+        .empty img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .55;
+        }
+
+        .empty::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 28, 69, .55);
+            border-radius: inherit;
+        }
+
+        .empty>*:not(img) {
+            position: relative;
+            z-index: 2;
+        }
+
+        .empty i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: .6rem;
+            background: #fff;
+            color: var(--blue-700);
+            padding: .6rem 1.3rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 5px 0 #b6d3ff, 0 12px 20px -6px rgba(0, 0, 0, .3);
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .empty a:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty a:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #b6d3ff;
+        }
+
+        @media (max-width: 1100px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .cube {
+                display: none;
+            }
+        }
+
+        @media (max-width: 560px) {
+
+            .stats-row,
+            .streak-row {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                height: 170px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- decorative 3D background -->
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="scene" aria-hidden="true">
+        {% for n in range(1, 4) %}
+        <div class="cube c{{ n }}"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        {% endfor %}
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <nav class="nav">
+                <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+                <a href="{{ url_for('select_exercise') }}"><i class="fas fa-dumbbell"></i> Workout</a>
+                <a href="{{ url_for('progress') }}" class="active"><i class="fas fa-chart-line"></i> Progress</a>
+                <a href="{{ url_for('measurements') }}"><i class="fas fa-ruler"></i> Measurements</a>
+                <a href="{{ url_for('reminders') }}"><i class="fas fa-bell"></i> Reminders</a>
+                <a href="{{ url_for('leaderboard') }}"><i class="fas fa-trophy"></i> Leaderboard</a>
+                <a href="{{ url_for('recommendations') }}"><i class="fas fa-lightbulb"></i> Tips</a>
+                <a href="{{ url_for('manual_log') }}"><i class="fas fa-plus-circle"></i> Log</a>
+                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <!-- Hero with photo -->
+            <section class="hero">
+                <img alt="" onerror="this.style.display='none'"
+                    src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1600&q=70">
+                <div class="hero-text">
+                    <h1>📈 Your Progress</h1>
+                    <p>Track your physio journey over time</p>
+                </div>
+            </section>
+
+            <!-- Summary stats -->
+            <div class="stats-row">
+                <div class="stat-card tilt">
+                    <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                    <div>
+                        <div class="stat-val">{{ sessions|length }}</div>
+                        <div class="stat-lbl">Total Sessions</div>
+                    </div>
+                </div>
+                <div class="stat-card tilt">
+                    <div class="stat-icon b2"><i class="fas fa-redo"></i></div>
+                    <div>
+                        <div class="stat-val">{{ total_reps }}</div>
+                        <div class="stat-lbl">Total Reps</div>
+                    </div>
+                </div>
+                <div class="stat-card tilt">
+                    <div class="stat-icon b3"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="stat-val">{{ total_time_mins }}</div>
+                        <div class="stat-lbl">Minutes Worked</div>
+                    </div>
+                </div>
+                <div class="stat-card tilt">
+                    <div class="stat-icon b4"><i class="fas fa-fire"></i></div>
+                    <div>
+                        <div class="stat-val">{{ total_calories }}</div>
+                        <div class="stat-lbl">kcal Burned</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Streaks -->
+            <div class="streak-row">
+                <div class="streak-card tilt">
+                    <div class="streak-num">{{ streaks.current }}</div>
+                    <div class="streak-label">🔥 Current Streak (days)</div>
+                </div>
+                <div class="streak-card longest tilt">
+                    <div class="streak-num">{{ streaks.longest }}</div>
+                    <div class="streak-label">🏆 Longest Streak (days)</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            {% if sessions %}
+            <div class="card tilt">
+                <div class="card-title">Reps Per Session</div>
+                <div class="chart-wrap"><canvas id="repsChart"></canvas></div>
+            </div>
+            <div class="card tilt">
+                <div class="card-title">Calories Burned Per Session</div>
+                <div class="chart-wrap"><canvas id="calChart"></canvas></div>
+            </div>
+            {% else %}
+            <div class="card empty">
+                <img alt="" onerror="this.style.display='none'"
+                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1400&q=70">
+                <i class="fas fa-dumbbell"></i>
+                <p>No sessions recorded yet.</p>
+                <a href="{{ url_for('select_exercise') }}">Start your first workout <i class="fas fa-arrow-right"
+                        style="font-size:.9rem;margin:0;"></i></a>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        // ---------- 3D tilt on cards ----------
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            document.querySelectorAll('.tilt').forEach(function (el) {
+                el.addEventListener('mousemove', function (e) {
+                    const r = el.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width;
+                    const py = (e.clientY - r.top) / r.height;
+                    el.style.transform = 'rotateY(' + ((px - .5) * 8) + 'deg) rotateX(' + (-(py - .5) * 8) + 'deg)';
+                    el.style.setProperty('--mx', (px * 100) + '%');
+                    el.style.setProperty('--my', (py * 100) + '%');
+                });
+                el.addEventListener('mouseleave', function () { el.style.transform = ''; });
+            });
+        })();
+
+        // ---------- Charts ----------
+        const labels = {{ sessions | map(attribute = 'date') | list | tojson }};
+        const reps = {{ sessions | map(attribute = 'count') | list | tojson }};
+        const cals = {{ sessions | map(attribute = 'calories') | list | tojson }};
+
+        function makeChart(id, label, data, color) {
+            new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: color + '26',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: color,
+                        pointBorderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(47,128,237,.12)' } }
+                    }
+                }
+            });
+        }
+
+        if (labels.length) {
+            makeChart('repsChart', 'Reps', reps, '#2f80ed');
+            makeChart('calChart', 'Calories', cals, '#0a2a66');
+        }
+    </script>
+</body>
+
+</html>

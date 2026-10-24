@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log a workout | PhysioTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #f2f7fd;
+            --white: #fff;
+            --ink: #0a2342;
+            --ink-2: #4a6283;
+            --ink-3: #8196b3;
+            --blue-900: #0a3b8c;
+            --blue-600: #0b63ce;
+            --blue-500: #2a82f0;
+            --blue-200: #cfe2fb;
+            --blue-100: #e5f0fe;
+            --blue-50: #f0f6ff;
+            --teal: #0aa5b8;
+            --line: #dbe6f4;
+            --lift: 0 1px 0 #fff inset, 0 1px 2px rgba(10, 35, 66, .06), 0 8px 18px -6px rgba(11, 99, 206, .16), 0 28px 44px -22px rgba(10, 35, 66, .22);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Figtree', system-ui, sans-serif;
+            color: var(--ink);
+            line-height: 1.5;
+            min-height: 100vh;
+            background: radial-gradient(900px 480px at 90% -8%, #dcebff, transparent 60%), linear-gradient(180deg, #f7fbff, var(--paper));
+            overflow-x: hidden
+        }
+
+        h1,
+        h2 {
+            font-family: 'Sora', sans-serif;
+            letter-spacing: -.02em
+        }
+
+        svg.i {
+            width: 1.1em;
+            height: 1.1em;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0
+        }
+
+        :focus-visible {
+            outline: 3px solid var(--blue-500);
+            outline-offset: 2px
+        }
+
+        .page {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 28px 24px 64px
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 34px
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font: 700 17px 'Sora', sans-serif
+        }
+
+        .mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(160deg, var(--blue-500), var(--blue-900));
+            display: grid;
+            place-items: center;
+            color: #fff;
+            box-shadow: 0 5px 0 -1px #08306f, 0 10px 16px -6px rgba(11, 99, 206, .5);
+            transform: translateY(-2px)
+        }
+
+        .mark .i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.2
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--blue-600);
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid var(--line);
+            box-shadow: 0 3px 0 var(--blue-200);
+            transition: transform .12s, box-shadow .12s
+        }
+
+        .back:hover {
+            transform: translateY(-1px)
+        }
+
+        .back:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--blue-200)
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+            gap: 44px;
+            align-items: center
+        }
+
+        @media(max-width:900px) {
+            .layout {
+                grid-template-columns: 1fr;
+                gap: 28px
+            }
+        }
+
+        /* Form card */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 34px;
+            box-shadow: var(--lift)
+        }
+
+        .card h1 {
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--blue-900);
+            line-height: 1.15;
+            margin-bottom: 8px
+        }
+
+        .card .sub {
+            color: var(--ink-2);
+            margin-bottom: 26px;
+            max-width: 46ch
+        }
+
+        .field {
+            margin-bottom: 18px
+        }
+
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 7px
+        }
+
+        .field small {
+            font-weight: 500;
+            color: var(--ink-3)
+        }
+
+        .control {
+            position: relative
+        }
+
+        .control .i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--blue-500);
+            pointer-events: none
+        }
+
+        .control input,
+        .control select {
+            width: 100%;
+            font: 500 16px 'Figtree', sans-serif;
+            color: var(--ink);
+            background: var(--blue-50);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 13px 14px 13px 42px;
+            box-shadow: inset 0 2px 4px rgba(10, 35, 66, .07);
+            transition: border-color .15s, background .15s, box-shadow .15s
+        }
+
+        .control select {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238196b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            padding-right: 40px
+        }
+
+        .control input:focus,
+        .control select:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            background-color: #fff;
+            box-shadow: inset 0 2px 4px rgba(10, 35, 66, .04), 0 0 0 4px rgba(42, 130, 240, .16)
+        }
+
+        .pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width:520px) {
+            .pair {
+                grid-template-columns: 1fr
+            }
+
+            .card {
+                padding: 26px 20px
+            }
+        }
+
+        .submit {
+            width: 100%;
+            margin-top: 8px;
+            font: 700 16px 'Figtree', sans-serif;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 15px;
+            border: 0;
+            border-radius: 13px;
+            cursor: pointer;
+            background: linear-gradient(180deg, var(--blue-500), var(--blue-600));
+            box-shadow: 0 5px 0 #084a9c, 0 16px 24px -8px rgba(11, 99, 206, .6);
+            transition: transform .12s, box-shadow .12s
+        }
+
+        .submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 0 #084a9c, 0 20px 28px -8px rgba(11, 99, 206, .6)
+        }
+
+        .submit:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #084a9c, 0 6px 10px -4px rgba(11, 99, 206, .6)
+        }
+
+        /* 3D live preview */
+        .stage {
+            perspective: 1200px;
+            display: grid;
+            place-items: center;
+            min-height: 430px
+        }
+
+        @media(max-width:900px) {
+            .stage {
+                min-height: 340px
+            }
+        }
+
+        .rig {
+            position: relative;
+            width: min(340px, 86vw);
+            height: 300px;
+            transform-style: preserve-3d;
+            transform: rotateX(52deg) rotateZ(-30deg);
+            animation: settle 1.3s cubic-bezier(.2, .8, .2, 1) both
+        }
+
+        @keyframes settle {
+            from {
+                transform: rotateX(52deg) rotateZ(-100deg) translateZ(-140px);
+                opacity: 0
+            }
+
+            to {
+                transform: rotateX(52deg) rotateZ(-30deg);
+                opacity: 1
+            }
+        }
+
+        .plate {
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, .85);
+            box-shadow: 0 0 0 1px var(--blue-200), 0 26px 34px -12px rgba(10, 35, 66, .32)
+        }
+
+        .plate.p1 {
+            transform: translateZ(0);
+            background: linear-gradient(135deg, #c4dbf9, #a5c6f5)
+        }
+
+        .plate.p2 {
+            transform: translateZ(34px);
+            background: linear-gradient(135deg, #d8e8fc, #b9d3f8)
+        }
+
+        .plate.p3 {
+            transform: translateZ(68px);
+            background: linear-gradient(135deg, #ffffff, #e3effd);
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between
+        }
+
+        .pv-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px
+        }
+
+        .pv-ex {
+            font: 800 22px 'Sora', sans-serif;
+            color: var(--blue-900);
+            line-height: 1.15
+        }
+
+        .pv-date {
+            font-size: 13px;
+            color: var(--ink-2);
+            margin-top: 4px
+        }
+
+        .pv-ecg {
+            width: 70px;
+            height: 34px;
+            color: var(--teal);
+            flex-shrink: 0
+        }
+
+        .pv-ecg path {
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 140;
+            stroke-dashoffset: 140;
+            animation: trace 2.6s ease-in-out .9s infinite
+        }
+
+        @keyframes trace {
+            0% {
+                stroke-dashoffset: 140
+            }
+
+            60%,
+            100% {
+                stroke-dashoffset: 0
+            }
+        }
+
+        .pv-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px
+        }
+
+        .pv-stat {
+            background: #fff;
+            border: 1px solid var(--blue-200);
+            border-radius: 12px;
+            padding: 10px 12px;
+            box-shadow: 0 3px 0 var(--blue-200)
+        }
+
+        .pv-stat b {
+            display: block;
+            font: 700 22px 'Sora', sans-serif;
+            color: var(--blue-600);
+            line-height: 1.2
+        }
+
+        .pv-stat span {
+            font-size: 12px;
+            color: var(--ink-2)
+        }
+
+        .cap {
+            text-align: center;
+            color: var(--ink-3);
+            font-size: 13px;
+            margin-top: 6px
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-pulse" viewBox="0 0 24 24">
+                <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />
+            </symbol>
+            <symbol id="i-back" viewBox="0 0 24 24">
+                <path d="M14.5 6l-6 6 6 6" />
+            </symbol>
+            <symbol id="i-cal" viewBox="0 0 24 24">
+                <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" />
+                <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+            </symbol>
+            <symbol id="i-body" viewBox="0 0 24 24">
+                <circle cx="12" cy="5" r="2.3" />
+                <path d="M12 8v6M7 10.5l5-1.5 5 1.5M12 14l-3.5 6M12 14l3.5 6" />
+            </symbol>
+            <symbol id="i-rep" viewBox="0 0 24 24">
+                <path d="M5 12a7 7 0 0112-5l2 2M19 12a7 7 0 01-12 5l-2-2" />
+                <path d="M19 4v5h-5M5 20v-5h5" />
+            </symbol>
+            <symbol id="i-time" viewBox="0 0 24 24">
+                <circle cx="12" cy="13" r="7.5" />
+                <path d="M12 9v4l2.5 1.5M9.5 3.5h5" />
+            </symbol>
+            <symbol id="i-plus" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v8M8 12h8" />
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="page">
+        <header class="top">
+            <div class="brand">
+                <div class="mark"><svg class="i">
+                        <use href="#i-pulse" />
+                    </svg></div>
+            </div>
+            <a href="{{ url_for('profile') }}" class="back"><svg class="i">
+                    <use href="#i-back" />
+                </svg> Back to profile</a>
+        </header>
+
+        <div class="layout">
+            <section class="card">
+                <h1>Log a workout you did without the camera</h1>
+                <p class="sub">Enter what you did and how long it took. It will show up in your history with your
+                    tracked sessions.</p>
+
+                <form method="POST" action="{{ url_for('manual_log') }}">
+                    <div class="field">
+                        <label for="date">Date and time</label>
+                        <div class="control"><svg class="i">
+                                <use href="#i-cal" />
+                            </svg>
+                            <input type="datetime-local" id="date" name="date" required>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="exercise">Exercise</label>
+                        <div class="control"><svg class="i">
+                                <use href="#i-body" />
+                            </svg>
+                            <select id="exercise" name="exercise" required>
+                                <option value="" disabled selected>Select an exercise</option>
+                                <option value="knee_raises">Knee Raises</option>
+                                <option value="squats">Squats</option>
+                                <option value="pushups">Pushups</option>
+                                <option value="lunges">Lunges</option>
+                                <option value="plank">Plank</option>
+                                <option value="sit-ups">Sit-ups</option>
+                                <option value="jumping_jacks">Jumping Jacks</option>
+                                <option value="bicep_curls">Bicep Curls</option>
+                                <option value="shoulder_press">Shoulder Press</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pair">
+                        <div class="field">
+                            <label for="count">Repetitions</label>
+                            <div class="control"><svg class="i">
+                                    <use href="#i-rep" />
+                                </svg>
+                                <input type="number" id="count" name="count" min="1" required placeholder="e.g. 20">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="total_time">Time <small>(seconds)</small></label>
+                            <div class="control"><svg class="i">
+                                    <use href="#i-time" />
+                                </svg>
+                                <input type="number" id="total_time" name="total_time" min="1" step="0.1" required
+                                    placeholder="e.g. 45">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit"><svg class="i">
+                            <use href="#i-plus" />
+                        </svg> Save workout</button>
+                </form>
+            </section>
+
+            <aside aria-label="Entry preview">
+                <div class="stage" aria-hidden="true">
+                    <div class="rig">
+                        <div class="plate p1"></div>
+                        <div class="plate p2"></div>
+                        <div class="plate p3">
+                            <div class="pv-top">
+                                <div>
+                                    <div class="pv-ex" id="pvEx">Choose an exercise</div>
+                                    <div class="pv-date" id="pvDate">Pick a date</div>
+                                </div>
+                                <svg class="pv-ecg" viewBox="0 0 70 34">
+                                    <path d="M2 18h14l5-12 8 24 6-12h33" />
+                                </svg>
+                            </div>
+                            <div class="pv-stats">
+                                <div class="pv-stat"><b id="pvReps">0</b><span>reps</span></div>
+                                <div class="pv-stat"><b id="pvTime">0</b><span>seconds</span></div>
+                                <div class="pv-stat"><b id="pvPace">&ndash;</b><span>sec per rep</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="cap">Preview of your entry</p>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const $ = id => document.getElementById(id);
+            const date = $('date'), ex = $('exercise'), count = $('count'), time = $('total_time');
+
+            // Default date and time to now (local)
+            const now = new Date();
+            date.value = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+            function update() {
+                const opt = ex.options[ex.selectedIndex];
+                $('pvEx').textContent = ex.value ? opt.text : 'Choose an exercise';
+                const d = new Date(date.value);
+                $('pvDate').textContent = isNaN(d) ? 'Pick a date' :
+                    d.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+                const r = parseFloat(count.value), t = parseFloat(time.value);
+                $('pvReps').textContent = r > 0 ? r : 0;
+                $('pvTime').textContent = t > 0 ? t : 0;
+                $('pvPace').textContent = (r > 0 && t > 0) ? (t / r).toFixed(1) : '\u2013';
+            }
+            [date, ex, count, time].forEach(el => el.addEventListener('input', update));
+            update();
+        });
+    </script>
+</body>
+
+</html>
